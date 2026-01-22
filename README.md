@@ -10,9 +10,17 @@ cmake --preset=default
 
 then build 
 
+
 cd buildVCPkg
+
+
 cmake --build 
 
 
-this should work... I hope...
+then run the tests it makes. these will be in buildVCPkg/utests.
 
+these tests are PointN_test, Color_test and VectorN_test
+
+
+this should work... I hope...
+:wq
