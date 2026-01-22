@@ -1,3 +1,9 @@
+NOTE I used some new c++ 23 stuff -- and maybe 26 stuff, I dont remember -- 
+
+so if it is not compiling that could be the issue.
+
+
+
 How to run... I stole the starter code from willemse, so its pretty good.
 
 
