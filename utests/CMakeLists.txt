@@ -21,6 +21,8 @@ set(UTESTS
   Color_test
   PointN_test
   VectorN_test
+  Matrix_test
+  Ray_test
   )
 
 # 

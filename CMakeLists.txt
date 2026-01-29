@@ -37,6 +37,7 @@ endif()
 
 # Should be using at least C++17, but 20 is better, so
 # make sure we switch to 20
+# I switched it to 23!!
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

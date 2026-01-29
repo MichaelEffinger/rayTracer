@@ -52,6 +52,20 @@ int main(int argc, char *argv[])
     }
     imData.write( "red_DualLoop.png" );
 
+    
+    // my favorite color
+    for (size_t y = 0; y < imData.get_height(); ++y)
+    {
+        for (size_t x = 0; x < imData.get_width(); ++x)
+	{
+            // non-checking equivalent of image.set_pixel(x, y, ...);
+            imData[y][x] = png::rgb_pixel(211, 159, 232);
+	}
+    }
+    imData.write( "favcol.png" );
+
+    
+
     //
     // Alternatively, you can do the same using a single loop:
     //
