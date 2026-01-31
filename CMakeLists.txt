@@ -89,7 +89,7 @@ find_package(glfw3 CONFIG REQUIRED)
 add_subdirectory(src)
 
 # Add my renderlib
-# add_subdirectory(renderlib)
+add_subdirectory(renderLib)
 
 # Some examples
 add_subdirectory(examples)
