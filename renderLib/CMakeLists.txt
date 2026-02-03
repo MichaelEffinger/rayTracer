@@ -4,6 +4,7 @@ add_library(renderLib
 
 add_executable(main
 	main.cpp
+	FrameBuffer.cpp
 )
 target_link_libraries(main PRIVATE renderLib)
 target_link_libraries(main PRIVATE cs4212-util)

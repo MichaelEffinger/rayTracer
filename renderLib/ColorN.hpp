@@ -691,14 +691,28 @@ namespace ES{
 
 
     struct RGB8 {
-        uint8_t R, G, B;
+        std::array<uint8_t,3> data_;
+        [[nodiscard]] constexpr auto&& operator[](this auto&& self, std::size_t index){
+            return std::forward_like<decltype(self)>(self.data_[index]);
+        }
+        
+        [[nodiscard]] constexpr auto&& R(this auto&& self) {
+            return std::forward_like<decltype(self)>(self[0]);
+        }
+        [[nodiscard]] constexpr auto&& G(this auto&& self) noexcept {
+            return std::forward_like<decltype(self)>(self[1]);
+        }
+        [[nodiscard]] constexpr auto&& B(this auto&& self) noexcept{
+            return std::forward_like<decltype(self)>(self[2]);
+        }
+
         constexpr RGB8(RGB rgb){
             float sR = (rgb.R()<=0.0031308f) ? 12.92f*rgb.R(): 1.055f * std::pow(rgb.R(), 1.0f / 2.4f) - 0.055f;
             float sG = (rgb.G()<=0.0031308f) ? 12.92f*rgb.G() : 1.055f * std::pow(rgb.G(), 1.0f / 2.4f) - 0.055f;
             float sB = (rgb.B()<=0.0031308f) ? 12.92f*rgb.B() : 1.055f * std::pow(rgb.B(), 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
         }
 
         constexpr RGB8(RGB_Int rgb){
@@ -710,17 +724,17 @@ namespace ES{
             float sR = (r<=0.0031308f) ? 12.92f*r: 1.055f * std::pow(r, 1.0f / 2.4f) - 0.055f;
             float sG = (g<=0.0031308f) ? 12.92f*g : 1.055f * std::pow(g, 1.0f / 2.4f) - 0.055f;
             float sB = (b<=0.0031308f) ? 12.92f*b : 1.055f * std::pow(b, 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
         }
 
         constexpr RGB8(RGBA rgba){
 
             if(rgba.A() == 0){
-                R = 0;
-                G= 0;
-                B=0;
+                R() = 0;
+                G()= 0;
+                B( )=0;
                 return;
             }
             float r = rgba.R()/rgba.A();
@@ -730,9 +744,9 @@ namespace ES{
             float sR = (r<=0.0031308f) ? 12.92f*r: 1.055f * std::pow(r, 1.0f / 2.4f) - 0.055f;
             float sG = (g<=0.0031308f) ? 12.92f*g : 1.055f * std::pow(g, 1.0f / 2.4f) - 0.055f;
             float sB = (b<=0.0031308f) ? 12.92f*b : 1.055f * std::pow(b, 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
         }
         constexpr RGB8(RGBA_Int rgba){
 
@@ -743,24 +757,46 @@ namespace ES{
             float sR = (r<=0.0031308f) ? 12.92f*r: 1.055f * std::pow(r, 1.0f / 2.4f) - 0.055f;
             float sG = (g<=0.0031308f) ? 12.92f*g : 1.055f * std::pow(g, 1.0f / 2.4f) - 0.055f;
             float sB = (b<=0.0031308f) ? 12.92f*b : 1.055f * std::pow(b, 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
         }
 
     };
 
     struct RGBA8{
-        uint8_t R,G,B,A;
+        std::array<uint8_t,4> data_;
+        
+        
+        
+        [[nodiscard]] constexpr auto&& operator[](this auto&& self, std::size_t index){
+            return std::forward_like<decltype(self)>(self.data_[index]);
+        }
+        
+        [[nodiscard]] constexpr auto&& R(this auto&& self) {
+            return std::forward_like<decltype(self)>(self[0]);
+        }
+        [[nodiscard]] constexpr auto&& G(this auto&& self) noexcept {
+            return std::forward_like<decltype(self)>(self[1]);
+        }
+        [[nodiscard]] constexpr auto&& B(this auto&& self) noexcept{
+            return std::forward_like<decltype(self)>(self[2]);
+        }
+        [[nodiscard]] constexpr auto&& A(this auto&& self) noexcept{
+            return std::forward_like<decltype(self)>(self[3]);
+        }
+
+
+
 
         constexpr RGBA8(RGB rgb,uint8_t a = 1){
             float sR = (rgb.R()<=0.0031308f) ? 12.92f*rgb.R(): 1.055f * std::pow(rgb.R(), 1.0f / 2.4f) - 0.055f;
             float sG = (rgb.G()<=0.0031308f) ? 12.92f*rgb.G() : 1.055f * std::pow(rgb.G(), 1.0f / 2.4f) - 0.055f;
             float sB = (rgb.B()<=0.0031308f) ? 12.92f*rgb.B() : 1.055f * std::pow(rgb.B(), 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255.0f),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255.0f),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255.0f),0.0f,255.0f));
-            A = static_cast<uint8_t>(std::clamp(std::round(a*255.0f),0.0f,255.0f));
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255.0f),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255.0f),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255.0f),0.0f,255.0f));
+            A() = static_cast<uint8_t>(std::clamp(std::round(a*255.0f),0.0f,255.0f));
         }
 
         constexpr RGBA8(RGB_Int rgb,int a = 255){
@@ -771,19 +807,19 @@ namespace ES{
             float sR = (r<=0.0031308f) ? 12.92f*r: 1.055f * std::pow(r, 1.0f / 2.4f) - 0.055f;
             float sG = (g<=0.0031308f) ? 12.92f*g : 1.055f * std::pow(g, 1.0f / 2.4f) - 0.055f;
             float sB = (b<=0.0031308f) ? 12.92f*b : 1.055f * std::pow(b, 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
-            A = static_cast<uint8_t>(a);
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
+            A() = static_cast<uint8_t>(a);
 
         }
 
         constexpr RGBA8(RGBA rgba){
             if(rgba.A() == 0){
-                R = 0;
-                G= 0;
-                B=0;
-                A = 0;
+                R() = 0;
+                G( )= 0;
+                B() =0;
+                A() = 0;
                 return;
             }
             float r = rgba.R()/rgba.A();
@@ -793,10 +829,10 @@ namespace ES{
             float sR = (r<=0.0031308f) ? 12.92f*r: 1.055f * std::pow(r, 1.0f / 2.4f) - 0.055f;
             float sG = (g<=0.0031308f) ? 12.92f*g : 1.055f * std::pow(g, 1.0f / 2.4f) - 0.055f;
             float sB = (b<=0.0031308f) ? 12.92f*b : 1.055f * std::pow(b, 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
-            A = static_cast<uint8_t>(std::clamp(std::round(rgba.A()*255),0.0f,255.0f));
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
+            A() = static_cast<uint8_t>(std::clamp(std::round(rgba.A()*255),0.0f,255.0f));
 
         }
         constexpr RGBA8(RGBA_Int rgba){
@@ -807,10 +843,10 @@ namespace ES{
             float sR = (r<=0.0031308f) ? 12.92f*r: 1.055f * std::pow(r, 1.0f / 2.4f) - 0.055f;
             float sG = (g<=0.0031308f) ? 12.92f*g : 1.055f * std::pow(g, 1.0f / 2.4f) - 0.055f;
             float sB = (b<=0.0031308f) ? 12.92f*b : 1.055f * std::pow(b, 1.0f / 2.4f) - 0.055f;
-            R = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
-            G = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
-            B = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
-            A = static_cast<uint8_t>(rgba.A());
+            R() = static_cast<uint8_t>(std::clamp(std::round(sR*255),0.0f,255.0f));
+            G() = static_cast<uint8_t>(std::clamp(std::round(sG*255),0.0f,255.0f));
+            B() = static_cast<uint8_t>(std::clamp(std::round(sB*255),0.0f,255.0f));
+            A() = static_cast<uint8_t>(rgba.A());
         }
 
 

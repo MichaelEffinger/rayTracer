@@ -1,3 +1,5 @@
+#pragma once
+
 #include "PointN.hpp"
 #include "VectorN.hpp"
 #include "Matrix.hpp"
