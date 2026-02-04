@@ -22,22 +22,25 @@ public:
 
     constexpr PerspectiveCamera() : pos{0.f, 0.f, 0.f}, U{1.f, 0.f, 0.f}, V{0.f, 1.f, 0.f}, W{0.f, 0.f, -1.f}, l(0.f), r(0.f), b(0.f), t(0.f), nx(0), ny(0), focal_length(0.f){}
 
-    constexpr PerspectiveCamera(PointN<float,3> origin , VectorN<float,3> viewdir , float focalLength , float imagePlaneWidth , std::size_t width, std::size_t height): pos(origin), nx(width), ny(height), focal_length(focalLength){
-       
-        W = (-viewdir).normalize();
-        U = W.cross(VectorN<float,3>{0,1,0}.normalize());
-        V = U.cross(W);
+    PerspectiveCamera(PointN<float,3> origin, VectorN<float,3> viewdir,float focalLength, float imagePlaneWidth, std::size_t width, std::size_t height) : pos(origin), nx(width), ny(height), focal_length(focalLength){
+        W = (-viewdir).normalize(); 
 
+        VectorN<float,3> world_up{0,1,0};
+        if (fabs(W.dot(world_up)) > 0.999f) world_up = VectorN<float,3>{1,0,0};
 
-        float aspect_ratio = float(width) / float(height);
-        float half_width  = imagePlaneWidth * 0.5f;
-        float half_height = half_width / aspect_ratio;
+        U = W.cross(world_up).normalize();
+        V = U.cross(W).normalize();
+
+        float aspect = float(width)/float(height);
+        float half_width  = imagePlaneWidth*0.5f;
+        float half_height = half_width/aspect;
 
         l = -half_width;
         r =  half_width;
         b = -half_height;
         t =  half_height;
     }
+
 
 
     Ray<float> generateRay(int i, int j) noexcept {

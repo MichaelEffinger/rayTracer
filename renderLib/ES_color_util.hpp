@@ -29,23 +29,23 @@ namespace ES{
         return ES::RGB{0.5f * (dir.x() + 1.0f), 0.5f * (dir.y() + 1.0f), 0.5f * (dir.z() + 1.0f)};
     }
 
-inline void export_as_PNG(const ES::FrameBuffer& fb, const std::string& filename) {
-    int w = fb.width();
-    int h = fb.height();
+    inline void export_as_PNG(const ES::FrameBuffer& fb, const std::string& filename) {
+        int w = fb.width();
+        int h = fb.height();
 
-    png::image<png::rgb_pixel> imData(w, h);
+        png::image<png::rgb_pixel> imData(w, h);
 
-    for (size_t y = 0; y < h; ++y) {
-        for (size_t x = 0; x < w; ++x) {
-            RGB8 col(fb(y, x));
+        for (size_t y = 0; y < h; ++y) {
+            for (size_t x = 0; x < w; ++x) {
+                RGB8 col(fb(y, x));
 
-            // RGB_Int col = RGB_Int::from_linear(fb(y,x).R(),fb(y,x).G(), fb(y,x).B());
-            imData[h - 1 - y][x] = png::rgb_pixel(col.R(), col.G(), col.B());
+                // RGB_Int col = RGB_Int::from_linear(fb(y,x).R(),fb(y,x).G(), fb(y,x).B());
+                imData[h - 1 - y][x] = png::rgb_pixel(col.R(), col.G(), col.B());
+            }
         }
-    }
 
-    imData.write(filename);
-}
+        imData.write(filename);
+    }
 
 
 
