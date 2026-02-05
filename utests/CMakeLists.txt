@@ -23,6 +23,7 @@ set(UTESTS
   VectorN_test
   Matrix_test
   Ray_test
+  Sphere_test
   )
 
 # 

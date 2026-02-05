@@ -1,12 +1,13 @@
 #include "PointN.hpp"
 #include "VectorN.hpp"
 #include "Ray.hpp"
+#include "Hit.hpp"
 namespace ES{
     struct Plane {
         PointN<float,3> point;
         VectorN<float,3> n;
 
-        bool intersect(const Ray<float>& ray, float& t_hit) const noexcept {
+        bool intersect(const Ray<float>& ray, float t_min, float& t_hit, Hit& hitstruct ) const noexcept {
             float denom = n.dot(ray.direction);
             if (std::abs(denom) < 1e-6f) return false;
 

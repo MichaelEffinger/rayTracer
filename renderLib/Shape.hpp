@@ -9,7 +9,7 @@
 class Triangle{
     public:
 
-    bool intersect(ES::Ray<float> r, float& hit) const{
+    bool intersect(ES::Ray<float> r, float jit, float& hit, ES::Hit& myjit) const{
         return false;
     }
 
@@ -19,6 +19,7 @@ class Triangle{
     }
 };
 
+
 namespace ES{
     using Shape = std::variant<Sphere, Plane, Triangle>;
 
@@ -26,9 +27,9 @@ namespace ES{
     
     namespace shape{
 
-        inline bool intersect(Shape& s,Ray<float>& r, float& t_hit) {
+        inline bool intersect(Shape& s,Ray<float>& r, float t_min, float& t_max, Hit& hitstruct) {
             bool hit = false;
-            std::visit([&](const auto& obj){ hit = obj.intersect(r, t_hit);}, s);
+            std::visit([&](const auto& obj){ hit = obj.intersect(r, t_min, t_max, hitstruct);}, s);
             return hit;
 
         }
