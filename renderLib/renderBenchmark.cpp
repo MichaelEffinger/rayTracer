@@ -113,54 +113,61 @@ std::vector<slow::SceneObject> create_virtual_scene(int total_spheres, float sta
 double benchmark_variant(int width, int height, int num_spheres) {
     FrameBuffer fb;
     fb.set_height_width(height, width);
-    
+
     ES::PointN<float, 3> cam_pos{0, 20, -10};
-    ES::VectorN<float, 3> cam_dir = ES::VectorN<float, 3>{0, 0, -20};
+    ES::VectorN<float, 3> cam_dir{0, 0, -20};
     cam_dir.normalize_in_place();
-    
+
     float focal = 2.f;
     float image_plane_width = 8.f;
-    
+
     ES::VectorN<float, 3> light_dir = {-1, -1, -1};
     light_dir.normalize_in_place();
-    
+
     ES::PerspectiveCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
     fb.gradiant_up({1, 1, 1}, {0, 0, 0});
-    
+
     auto scene = create_variant_scene(num_spheres, -20.0f);
-    
+
     auto start = std::chrono::high_resolution_clock::now();
-    
+
     // Render
     for (int x = 0; x < fb.height(); ++x) {
         for (int y = 0; y < fb.width(); ++y) {
+
             Ray<float> r = p.generateRay(y, x);
-            float closest = INFINITY;
+
+            float t_max = INFINITY;
+            Hit hit;
             bool hit_anything = false;
             std::size_t hit_index = 0;
-            
-            for (int i = 0; i < scene.size(); i++) {
-                float t_hit;
-                if (shape::intersect(scene[i].obj, r, t_hit) && t_hit < closest) {
-                    closest = t_hit;
-                    hit_index = i;
+
+            for (std::size_t i = 0; i < scene.size(); ++i) {
+                Hit temp_hit;
+                if (shape::intersect(scene[i].obj, r, 0.001f, t_max, temp_hit)) {
                     hit_anything = true;
+                    hit = temp_hit;
+                    hit_index = i;
                 }
             }
-            
+
             if (hit_anything) {
-                PointN<float, 3> hit_position = r.origin + closest * r.direction;
-                VectorN<float, 3> normal = shape::normal(scene[hit_index].obj, hit_position);
-                fb(y, x) = shader::shade(scene[hit_index].shade, hit_position, normal, r, light_dir);
+                fb(y, x) = shader::shade(
+                    scene[hit_index].shade,
+                    hit.position,
+                    hit.normal,
+                    r,
+                    light_dir
+                );
             }
         }
     }
-    
+
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
-    
+
     ES::export_as_PNG(fb, "variant_benchmark.png");
-    
+
     return elapsed.count();
 }
 
