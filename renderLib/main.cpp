@@ -226,7 +226,7 @@ int main(int argc, char *argv[]) {
     
     const int width = 800;
     const int height = 800;
-    const int num_spheres = 100000;
+    const int num_spheres = 10000;
     
     std::cout << "========================================" << std::endl;
     std::cout << "Ray Tracer Performance Benchmark" << std::endl;
