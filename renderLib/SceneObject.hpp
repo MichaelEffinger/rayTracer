@@ -1,3 +1,6 @@
+#pragma once
+
+
 #include "Shape.hpp"
 #include "Shader.hpp"
 

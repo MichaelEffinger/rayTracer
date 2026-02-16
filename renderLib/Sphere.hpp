@@ -13,7 +13,7 @@ public:
     PointN<float, 3> origin;
     float radius;
 
-    Sphere() = default;
+    constexpr Sphere() noexcept = default;
 
     constexpr Sphere(PointN<float,3> newOrigin, float newRadius) noexcept
         : origin(newOrigin), radius(newRadius){}
@@ -45,14 +45,16 @@ public:
 
         t_max = t;
         hitstruct.t = t;
-        hitstruct.position = ray.at(t);
+        hitstruct.position = ray.at(hitstruct.t);
+        VectorN<float,3> outward_normal = (hitstruct.position - origin)/radius;
         hitstruct.normal = (hitstruct.position - origin)/radius;
+        hitstruct.set_face_normal(ray,outward_normal);
 
         return true;
     }
 
-    constexpr VectorN<float,3> normal(PointN<float,3> hit_point) const noexcept {
-        return (hit_point - origin).normalize();
+    constexpr VectorN<float,3> normal(Hit& hit) const noexcept {
+        return (hit.position - origin).normalize();
     }
 };
 

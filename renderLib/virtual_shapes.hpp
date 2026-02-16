@@ -231,3 +231,6 @@ public:
 };
 
 } // namespace slow
+
+
+// I wonder if this stuff is allowing better optimization then it should be 

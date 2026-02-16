@@ -5,7 +5,8 @@
 #include "ColorN.hpp"
 #include "Ray.hpp"
 #include "VectorN.hpp"
-
+#include "PointLight.hpp"
+#include "Hit.hpp"
 namespace ES{
     
 
@@ -20,7 +21,7 @@ namespace ES{
             color = newColor;
         }
 
-        constexpr RGB operator()(const PointN<float,3>& hit_point,const VectorN<float,3>& normal,const Ray<float>& ray, const VectorN<float,3>& light_direction) const noexcept{
+        constexpr RGB operator()(const Hit& hit,const Ray<float>& ray, const std::vector<PointLight>& lights) const noexcept{
             return color;
         }
     };
@@ -34,7 +35,7 @@ namespace ES{
 
         RandomShader(){ };
 
-        constexpr RGB operator()(const PointN<float,3>& hit_point,const VectorN<float,3>& normal,const Ray<float>& ray,const VectorN<float,3>& light_direction) const noexcept{
+        RGB operator()(const Hit& hit,const Ray<float>& ray,const std::vector<PointLight>& lights) const noexcept{
             return { dist(rng), dist(rng), dist(rng) };
         }
     };
@@ -46,11 +47,16 @@ namespace ES{
 
         LambertianShader(RGB newColor, float intensity_) : color(newColor), intensity(intensity_) {}
 
-        constexpr RGB operator()(const PointN<float,3>& hit_point, const VectorN<float,3>& normal, const Ray<float>& ray, const VectorN<float,3>& light_direction) const noexcept {
-            VectorN<float,3> L = -light_direction;
-            float NdotL = std::max(0.f, normal.dot(L));
-            RGB temp = color * intensity * NdotL;
-            return temp.clamp(0,1);
+        constexpr RGB operator()(const Hit& hit, const Ray<float>& ray, const std::vector<PointLight>& lights) const noexcept {
+            RGB finalColor{0,0,0};
+
+            for(const auto& light : lights){
+                VectorN<float,3> light_direction = (light.position - hit.position).normalize();
+                float factor = std::max(0.0f, hit.normal.dot(light_direction));
+                finalColor += (color * intensity) * light.intensity * factor;
+            }
+            return finalColor;
+            
         }
     };
 
@@ -61,61 +67,62 @@ namespace ES{
         mutable std::mt19937 rng;
         mutable std::uniform_real_distribution<float> dist;
 
-        RandomLambertianShader(float intensity_) : intensity(intensity_) {}
+        RGB operator()(const Hit& hit, const Ray<float>& ray, const std::vector<PointLight>& lights) const noexcept {
+            RGB finalColor{0,0,0};
 
-        constexpr RGB operator()(const PointN<float,3>& hit_point, const VectorN<float,3>& normal, const Ray<float>& ray, const VectorN<float,3>& light_direction) const noexcept {
-            VectorN<float,3> L = -light_direction;
-            float NdotL = std::max(0.f, normal.dot(L));
-            RGB temp = RGB{dist(rng),dist(rng),dist(rng)} * intensity * NdotL;
-            return temp.clamp(0,1);
+            for(const auto& light : lights){
+                VectorN<float,3> light_direction = (light.position - hit.position).normalize();
+                float factor = std::max(0.0f, hit.normal.dot(light_direction));
+                finalColor += (RGB{dist(rng),dist(rng),dist(rng)} * intensity) * light.intensity * factor;
+            }
+            return finalColor;
         }
+
     };
-
-
-
 
     class NormalShader{
         public:
         
         NormalShader(){};
 
-        constexpr RGB operator()(const PointN<float,3>& hit_point,const VectorN<float,3>& normal,const Ray<float>& ray,const VectorN<float,3>& light_direction)const noexcept{
-            return RGB{0.5f * (normal.x() + 1.f), 0.5f * (normal.y() + 1.f), 0.5f * (normal.z() + 1.f)};
+        constexpr RGB operator()(const Hit& hit,const Ray<float>& ray,const std::vector<PointLight>& lights)const noexcept{
+            return RGB{0.5f * (hit.normal.x() + 1.f), 0.5f * (hit.normal.y() + 1.f), 0.5f * (hit.normal.z() + 1.f)};            
         }
-
-
 
     };
 
     class BlinnPhongShader{
         public:
-        RGB ambient;
-        RGB diffuse;
-        RGB specular;
+        RGB color;
         float shininess;
         float intensity;
+        RGB specular_color;
         
-        BlinnPhongShader(RGB ambient_, RGB diffuse_, RGB specular_, float shininess_,float intensity_){
-            ambient = ambient_;
-            diffuse = diffuse_;
-            specular = specular_;
-            shininess_ = shininess_;
-            intensity = intensity_;
-        }
+        BlinnPhongShader(RGB color_, float shininess_,float intensity_, RGB specular_color_ = {1,1,1}) noexcept : 
+           color(color_),shininess(shininess_), intensity(intensity_),specular_color(specular_color_){}
 
-        constexpr RGB operator()(const PointN<float,3>& hit_point,const VectorN<float,3>& normal,const Ray<float>& ray,const VectorN<float,3>& light_direction) const noexcept{
-                
-            VectorN<float,3> N = normal.normalize();
-            VectorN<float,3> L = -light_direction.normalize();
-            VectorN<float,3> V = (-ray.direction).normalize();
-            VectorN<float,3> H = (L + V).normalize(); 
+        RGB operator()(const Hit& hit,const Ray<float>& ray,const std::vector<PointLight>& lights) const noexcept{ 
+            RGB finalColor{0,0,0};
 
-            float NdotL = std::max(0.f, N.dot(L));
-            float NdotH = std::max(0.f, N.dot(H));
+            for(const auto& light : lights){
+                VectorN<float,3> L = (light.position - hit.position).normalize();
+                VectorN<float,3> V = (ray.origin - hit.position).normalize(); 
+                VectorN<float,3> H = (L + V).normalize();
 
-            RGB color = ambient + diffuse * (NdotL * intensity) + specular * std::pow(NdotH, shininess) * intensity;
 
-            return color.clamp(0.f, 1.f);
+                float diffuse_factor = std::max(0.0f, hit.normal.dot(L));
+                RGB diffuse = (color * intensity) * light.intensity * diffuse_factor;
+
+                float shine_factor = std::max(0.0f, hit.normal.dot(H));
+                float specular_intensity = std::pow(shine_factor, shininess);
+                RGB specular = specular_color * light.intensity * specular_intensity;
+
+                finalColor += diffuse + specular;
+            }
+
+
+            return finalColor;
+            
         }
     };
 
@@ -126,8 +133,8 @@ namespace ES{
 
 
     namespace shader{
-        constexpr RGB shade(const Shader& shader_, const PointN<float,3>& hit_point, const VectorN<float,3>& normal, const Ray<float>& ray,const VectorN<float,3>& light_direction) noexcept{
-            return std::visit([&](auto&& sh) -> RGB { return sh(hit_point, normal, ray,light_direction); }, shader_);
+        constexpr RGB shade(const Shader& shader_, const Hit& hit, const Ray<float>& ray,const std::vector<PointLight>& lights) noexcept{
+            return std::visit([&](auto&& sh) -> RGB { return sh(hit, ray,lights); }, shader_);
         }
     }
 

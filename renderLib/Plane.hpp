@@ -7,19 +7,11 @@ namespace ES{
         PointN<float,3> point;
         VectorN<float,3> n;
 
-        bool intersect(const Ray<float>& ray, float t_min, float& t_hit, Hit& hitstruct ) const noexcept {
-            float denom = n.dot(ray.direction);
-            if (std::abs(denom) < 1e-6f) return false;
-
-            float t = (point - ray.origin).dot(n) / denom;
-            if (t > 1e-6f) {
-                t_hit = t;
-                return true;
-            }
+        bool intersect(const Ray<float>& ray, float t_min, float& t_hit, Hit& hitstruct) const noexcept {
             return false;
         }
 
-        VectorN<float,3> normal(const PointN<float,3>&) const noexcept {
+        VectorN<float,3> normal(Hit& hit) const noexcept {
             return n;
         }
     };

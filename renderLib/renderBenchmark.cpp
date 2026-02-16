@@ -113,61 +113,55 @@ std::vector<slow::SceneObject> create_virtual_scene(int total_spheres, float sta
 double benchmark_variant(int width, int height, int num_spheres) {
     FrameBuffer fb;
     fb.set_height_width(height, width);
-
+    
     ES::PointN<float, 3> cam_pos{0, 20, -10};
-    ES::VectorN<float, 3> cam_dir{0, 0, -20};
+    ES::VectorN<float, 3> cam_dir = ES::VectorN<float, 3>{0, 0, -20};
     cam_dir.normalize_in_place();
-
+    
     float focal = 2.f;
     float image_plane_width = 8.f;
-
+    
     ES::VectorN<float, 3> light_dir = {-1, -1, -1};
     light_dir.normalize_in_place();
-
+    
     ES::PerspectiveCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
     fb.gradiant_up({1, 1, 1}, {0, 0, 0});
-
+    
     auto scene = create_variant_scene(num_spheres, -20.0f);
-
+    
     auto start = std::chrono::high_resolution_clock::now();
-
+    float TMAX = INFINITY;
+    float TMIN = 0;
     // Render
-    for (int x = 0; x < fb.height(); ++x) {
-        for (int y = 0; y < fb.width(); ++y) {
-
+    for (int x=0; x <800; ++x) {
+        for (int y=0; y <800; ++y) {
             Ray<float> r = p.generateRay(y, x);
-
-            float t_max = INFINITY;
+            
+            float t_max = TMAX;
             Hit hit;
             bool hit_anything = false;
             std::size_t hit_index = 0;
 
-            for (std::size_t i = 0; i < scene.size(); ++i) {
+            for(int i=0; i<scene.size(); i++){
                 Hit temp_hit;
-                if (shape::intersect(scene[i].obj, r, 0.001f, t_max, temp_hit)) {
+                if(shape::intersect(scene[i].obj,r,TMIN, t_max, temp_hit)){
                     hit_anything = true;
                     hit = temp_hit;
                     hit_index = i;
                 }
             }
 
-            if (hit_anything) {
-                fb(y, x) = shader::shade(
-                    scene[hit_index].shade,
-                    hit.position,
-                    hit.normal,
-                    r,
-                    light_dir
-                );
+            if(hit_anything){
+                fb(y,x) = shader::shade(scene[hit_index].shade,hit.position,hit.normal,r,light_dir);
             }
         }
     }
-
+    
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
-
-    ES::export_as_PNG(fb, "variant_benchmark.png");
-
+    
+    ES::export_as_PNG(fb, "variant_benchmark_value.png");
+    
     return elapsed.count();
 }
 
@@ -221,7 +215,7 @@ double benchmark_virtual(int width, int height, int num_spheres) {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     
-    ES::export_as_PNG(fb, "virtual_benchmark.png");
+    ES::export_as_PNG(fb, "virtual_benchmark_value.png");
     
     return elapsed.count();
 }
@@ -232,7 +226,7 @@ int main(int argc, char *argv[]) {
     
     const int width = 800;
     const int height = 800;
-    const int num_spheres = 100000;
+    const int num_spheres = 10000;
     
     std::cout << "========================================" << std::endl;
     std::cout << "Ray Tracer Performance Benchmark" << std::endl;
