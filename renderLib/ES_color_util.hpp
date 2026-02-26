@@ -39,7 +39,8 @@ namespace ES{
             for (size_t x = 0; x < w; ++x) {
                 RGB8 col(fb(y, x));
 
-                // RGB_Int col = RGB_Int::from_linear(fb(y,x).R(),fb(y,x).G(), fb(y,x).B());
+               // RGB_Int col = RGB_Int::from_linear(fb(y,x).R(),fb(y,x).G(), fb(y,x).B());
+               // col = col.clamp(0,255);
                 imData[h - 1 - y][x] = png::rgb_pixel(col.R(), col.G(), col.B());
             }
         }

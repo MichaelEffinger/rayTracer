@@ -1,9 +1,8 @@
 #pragma once
 
-
-#include "Shape.hpp"
+#include "ShaderVariant.hpp"
 #include "Shader.hpp"
-
+#include "Shape.hpp"
 
 namespace ES{
     class SceneObject{

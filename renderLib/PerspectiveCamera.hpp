@@ -43,10 +43,10 @@ public:
 
 
 
-    Ray<float> generateRay(int i, int j) noexcept {
+    Ray<float> generateRay(float i, float j) const noexcept {
         float u = r + (l - r) * (j + 0.5f) / float(nx); 
         float v = b + (t - b) * (i + 0.5f) / float(ny);
-        return Ray<float>{pos,(-W*focal_length + U*u + V*v)};
+        return Ray<float>{pos, (-W*focal_length + U*u + V*v)};
     }
 };
 

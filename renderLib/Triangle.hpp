@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ES_math.hpp"
 #include "PointN.hpp"
 #include "Ray.hpp"
 #include "Hit.hpp"
@@ -33,7 +34,7 @@ namespace ES{
             VectorN<float,3> P = ray.direction.cross(edge2);
             float det = edge1.dot(P);
 
-            constexpr float eps = 1e-8f;
+            constexpr float eps = math::default_epsilon<float>::value;
             if (det > -eps && det < eps) return false;
 
             float inv_det = 1.0f / det;

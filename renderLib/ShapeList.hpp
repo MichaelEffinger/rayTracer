@@ -1,7 +1,5 @@
 #pragma once
 #include <vector>
-
-#include "Shape.hpp"
 #include "SceneObject.hpp"
 
 namespace ES{
@@ -11,8 +9,9 @@ namespace ES{
         public:
 
         std::vector<SceneObject> data_;
+        RGB background;
 
-        constexpr ShapeList() noexcept = default;
+        constexpr ShapeList(RGB background_) noexcept : background(background_){}
 
         ShapeList(SceneObject object) noexcept : data_{object}{}
 

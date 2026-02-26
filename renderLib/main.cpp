@@ -11,6 +11,7 @@
 #include "SceneObject.hpp"
 #include "ShapeList.hpp"
 #include "PointLight.hpp"
+#include "Renderer.hpp"
 using namespace ES;
 
 int main(int argc, char *argv[]) {
@@ -20,59 +21,34 @@ int main(int argc, char *argv[]) {
     FrameBuffer fb;
     fb.set_height_width(1000, 1000);
 
-    ES::PointN<float,3> cam_pos{0,0,0};
-    ES::VectorN<float,3> cam_dir{0,0,-1};
-    float focal = 1.f;
+    ES::PointN<float,3> cam_pos{0,3.0,4.0};
+    ES::VectorN<float,3> cam_dir{0,-1.5,-3.0};
+    float focal$ = .4f;
     float image_plane_width = .5f;
     std::size_t width = 1000;
     std::size_t height = 1000;
-    float TMAX = INFINITY;
-    float TMIN = 0;
-    PointLight light{{5,0,-17},{1,1,1}};
-
+    PointLight light{{0,0,0},{1,1,1}};
+    std::size_t rays_per_pixel;
     std::vector<PointLight> lights{light};
-    //lights.push_back({{-5,0,-17},{1,1,1}});
-
     int samples_per_pixel = 10; 
+    ES::PerspectiveCamera p(cam_pos, cam_dir, focal$, image_plane_width, width, height);
+    ShapeList scene({.3,.6,.7f});
+    Renderer renderer(fb,p,lights);
 
-    ES::PerspectiveCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
-    
-    fb.gradiant_up({1,1,1},{0,0,0});
 
-    ShapeList scene;
+// Ground Plane: triangle - large triangle at Z = 0, grey Lambertian
+// Red Sphere: center=(-1.2, 1.0, -3.0), radius=1.0, Red Blinn Phong
+// Mirror Sphere: center=(1.2, 1.10, -4.0), radius=1.10, Mirror;
 
-    
-    scene.add({Sphere({ 4.f,  0.f, -20.f}, 1.75f),LambertianShader({1,0,0},1)});
-    scene.add({Sphere({ 2.f,  3.464f, -20.f}, 1.75f), LambertianShader({0,1,0},1)});
-    scene.add({Sphere({-2.f,  3.464f, -20.f}, 1.75f), LambertianShader({0,0,1},1)});
-    scene.add({Sphere({-4.f,  0.f, -20.f}, 1.75f),LambertianShader({1,1,0},1)});
-    scene.add({Sphere({-2.f, -3.464f, -20.f}, 1.75f), LambertianShader({0,1,1},1)});
-    scene.add({Sphere({ 2.f, -3.464f, -20.f}, 1.75f), BlinnPhongShader({1,0,1},25,1,{1,1,1})});
 
-    
-    scene.add({Sphere({0.f, 0.f, -20.f}, 1.75f), LambertianShader({1,1,1},1)});
 
-    scene.add({Triangle({ 4.f,  0.f, -20.f},{-2.f,  3.464f, -20.f},{-2.f, -3.464f, -20.f}),LambertianShader({.31,0,.31},1)});
-    scene.add({Triangle({ 2.f,  3.464f, -20.f},{-4.f,  0.f, -20.f},{2.f, -3.464f, -20.f}),LambertianShader({1,.34,0},1)});
+    scene.add({Sphere({ -1.2,  1.0f, -3.f}, 1.0),BlinnPhongShader({1,0,0},100,1)});
+    scene.add({Sphere({ 1.2,  1.10, -4.f}, 1.10),MirrorShader()});
+    scene.add({Sphere({0.0f, -1001.0f, -3.0f}, 1000.0f), LambertianShader({0.5f, 0.5f, 0.5f}, 1.0f)});
     
 
-    for (int x=0; x <1000; ++x) {
-            for (int y=0; y <1000; ++y) {
-                Ray<float> r = p.generateRay(y, x);
-                
-                float t_max = TMAX;
-                Hit hit;
-                bool hit_anything = false;
-                std::size_t hit_index = 0;         
-                hit_anything = scene.intersect(r,TMIN, t_max,hit,hit_index);
-
-                if(hit_anything){
-                    fb(y,x) = shader::shade(scene.data_[hit_index].shade,hit, r,lights);
-                }
-            }
-    }
-
+    renderer(scene,50,0,INFINITY, 10);
     
-    ES::export_as_PNG(fb, "defaultCamRayColors.png");
+    ES::export_as_PNG(renderer.fb, "defaultCamRayColors.png");
     
 }
