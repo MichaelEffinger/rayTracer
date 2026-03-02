@@ -2,7 +2,7 @@
 #include "FrameBuffer.hpp"
 #include "PerspectiveCamera.hpp"
 #include "Ray.hpp"
-#include "ShapeList.hpp"
+#include "Scene.hpp"
 #include "PointLight.hpp"
 
 
@@ -19,7 +19,7 @@ namespace ES{
 
         Renderer(FrameBuffer& buffer, PerspectiveCamera& camera_, std::vector<PointLight>& lights_) noexcept : fb{buffer}, camera{camera_}, lights{lights_} {}
 
-        void operator()(const ShapeList& shapes, std::size_t samples_per_pixel, float TMIN, float TMAX, std::size_t depth) const noexcept {
+        void operator()(const Scene& shapes, std::size_t samples_per_pixel, float TMIN, float TMAX, std::size_t depth) const noexcept {
             std::mt19937 rng;
             std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 
@@ -34,7 +34,7 @@ namespace ES{
                         std::size_t hit_index = 0;
 
                         if (shapes.intersect(r, TMIN, t_max, hit, hit_index)) {
-                            accumulated += shader::shade(shapes.data_[hit_index].shade, hit, r, lights, depth, shapes);
+                            accumulated += shader::shade(shapes.shapes[hit_index].shade, hit, r, depth, shapes);
                         } else {
                             accumulated += shapes.background;
                         }

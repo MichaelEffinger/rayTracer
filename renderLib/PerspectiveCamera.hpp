@@ -18,6 +18,9 @@ private:
     std::size_t nx, ny;
     float focal_length;
 
+
+
+    
 public:
 
     constexpr PerspectiveCamera() : pos{0.f, 0.f, 0.f}, U{1.f, 0.f, 0.f}, V{0.f, 1.f, 0.f}, W{0.f, 0.f, -1.f}, l(0.f), r(0.f), b(0.f), t(0.f), nx(0), ny(0), focal_length(0.f){}

@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <chrono>  // <-- added for timing
 
 #include "ES_color_util.hpp"
 #include "ColorN.hpp"
@@ -9,46 +10,76 @@
 #include "Shader.hpp"
 #include "Shape.hpp"
 #include "SceneObject.hpp"
-#include "ShapeList.hpp"
+#include "Scene.hpp"
 #include "PointLight.hpp"
 #include "Renderer.hpp"
+#include "../src/handleGraphicsArgs.h"
+#include "readTriangleVerts.hpp"
+
 using namespace ES;
 
 int main(int argc, char *argv[]) {
     
     sivelab::GraphicsArgs args;
     args.process(argc, argv);
+
+    // parsed arguments;
+    std::string input_file = args.inputFileName;
+    std::string output_file = args.outputFileName;
+    std::size_t width = args.width;
+    std::size_t height = args.height;
+    float aspectRatio = args.aspectRatio;
+    std::size_t  rays_per_pixel = args.rpp;
+    std::size_t ray_depth;
+    
+    //non implemented;
+    bool has_shadow;
+    float depth_of_view_focus;
+    auto split = 0;
+    auto window_height = 0;
+    auto window_width = 0;
+    
+    std::vector<float> vertices;
+    readFloatsFromFile("trilist.dat",vertices);
+    Mesh bunny(vertices);
+    
+    
+    float image_plane_width = 1.0f;
+    float focal = 1.0f;
+    float fov = 2.0f * atan(image_plane_width / (2.0f * focal)) * 180.0f / math::pi<float>;
+    
+
+    
     FrameBuffer fb;
-    fb.set_height_width(1000, 1000);
+    fb.set_height_width(height, width);
 
-    ES::PointN<float,3> cam_pos{0,3.0,4.0};
-    ES::VectorN<float,3> cam_dir{0,-1.5,-3.0};
-    float focal$ = .4f;
-    float image_plane_width = .5f;
-    std::size_t width = 1000;
-    std::size_t height = 1000;
-    PointLight light{{0,0,0},{1,1,1}};
-    std::size_t rays_per_pixel;
-    std::vector<PointLight> lights{light};
-    int samples_per_pixel = 10; 
-    ES::PerspectiveCamera p(cam_pos, cam_dir, focal$, image_plane_width, width, height);
-    ShapeList scene({.3,.6,.7f});
-    Renderer renderer(fb,p,lights);
-
-
-// Ground Plane: triangle - large triangle at Z = 0, grey Lambertian
-// Red Sphere: center=(-1.2, 1.0, -3.0), radius=1.0, Red Blinn Phong
-// Mirror Sphere: center=(1.2, 1.10, -4.0), radius=1.10, Mirror;
-
-
-
-    scene.add({Sphere({ -1.2,  1.0f, -3.f}, 1.0),BlinnPhongShader({1,0,0},100,1)});
-    scene.add({Sphere({ 1.2,  1.10, -4.f}, 1.10),MirrorShader()});
-    scene.add({Sphere({0.0f, -1001.0f, -3.0f}, 1000.0f), LambertianShader({0.5f, 0.5f, 0.5f}, 1.0f)});
+    ES::PointN<float,3> cam_pos{0,0,2};
+    ES::VectorN<float,3> cam_dir{0,0,-1};
+    PointLight light{{1,5,1},{1,1,1}};
+    PointLight light2{{-1,5,1},{1,1,1}};
+    PointLight light3{{-1,5,-5},{1,1,1}};
     
+    
+    std::vector<PointLight> lights{light, light2,light3};
 
-    renderer(scene,50,0,INFINITY, 10);
-    
-    ES::export_as_PNG(renderer.fb, "defaultCamRayColors.png");
-    
+    ES::PerspectiveCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
+    Scene scene({.3,.6,.7f});
+    scene.add_light(light).add_light(light2).add_light(light3);
+    scene.add_camera(p);
+
+    Renderer renderer(fb,p,scene.lights);
+
+    scene.add_shape({bunny,LambertianShader{{1,0,0},1}});
+
+    // --- Render timer start ---
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    renderer(scene,rays_per_pixel,0,INFINITY, 10);
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+    std::cout << "Render completed in " << elapsed_seconds.count() << " seconds.\n";
+    // --- Render timer end ---
+
+    ES::export_as_PNG(renderer.fb, output_file);
 }

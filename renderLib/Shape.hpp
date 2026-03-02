@@ -5,15 +5,16 @@
 #include "Sphere.hpp"
 #include "Plane.hpp"
 #include "Triangle.hpp"
+#include "Mesh.hpp"
 
 namespace ES{
-    using Shape = std::variant<Sphere, Plane, Triangle>;
+    using Shape = std::variant<Sphere, Plane, Triangle,Mesh>;
 
 
     
     namespace shape{
 
-        inline bool intersect(const Shape& s,Ray<float>& r, float t_min, float& t_max, Hit& hitstruct) {
+        inline bool intersect(const Shape& s,Ray<float>& r, float t_min, float &t_max, Hit& hitstruct) {
             bool hit = false;
             std::visit([&](const auto& obj){ hit = obj.intersect(r, t_min, t_max, hitstruct);}, s);
             return hit;

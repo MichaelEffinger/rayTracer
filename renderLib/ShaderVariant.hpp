@@ -9,12 +9,11 @@ namespace ES {
         NormalShader,
         LambertianShader,
         BlinnPhongShader,
-        RandomLambertianShader,
-        MirrorShader
+        MirrorShader,
+        DiffuseShader
     >;
 
     namespace shader {
-        RGB shade(const Shader& shader_, const Hit& hit, const Ray<float>& ray,
-                  const std::vector<PointLight>& lights, std::size_t depth, const ShapeList& shapes) noexcept;
+        RGB shade(const Shader& shader_, const Hit& hit, const Ray<float>& ray, std::size_t depth, const Scene& shapes) noexcept;
     }
 }
