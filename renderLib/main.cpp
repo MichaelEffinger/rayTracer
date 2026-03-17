@@ -15,6 +15,8 @@
 #include "Renderer.hpp"
 #include "../src/handleGraphicsArgs.h"
 #include "readTriangleVerts.hpp"
+#include "../src/SceneParser_JSON.hpp"
+#include "../src/SceneLoader.hpp"
 
 using namespace ES;
 
@@ -47,30 +49,55 @@ int main(int argc, char *argv[]) {
     float image_plane_width = 1.0f;
     float focal = 1.0f;
     float fov = 2.0f * atan(image_plane_width / (2.0f * focal)) * 180.0f / math::pi<float>;
-    
 
     
     FrameBuffer fb;
     fb.set_height_width(height, width);
 
-    ES::PointN<float,3> cam_pos{0,0,2};
+    ES::PointN<float,3> cam_pos{0,0,0};
     ES::VectorN<float,3> cam_dir{0,0,-1};
+
+    /*
     PointLight light{{1,5,1},{1,1,1}};
     PointLight light2{{-1,5,1},{1,1,1}};
     PointLight light3{{-1,5,-5},{1,1,1}};
-    
-    
     std::vector<PointLight> lights{light, light2,light3};
+    */
+    
 
     ES::PerspectiveCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
     Scene scene({.3,.6,.7f});
+    scene.height = height;
+    scene.width = width;
+    /*
     scene.add_light(light).add_light(light2).add_light(light3);
-    scene.add_camera(p);
+    */
+
+    std::string datasource = R"({
+        "shader": [
+            { "_name": "white_chalk",  "_type": "Lambertian", "diffuse": [1, 1, 1] },
+            { "_name": "red_chalk",    "_type": "Lambertian", "diffuse": [1, 0, 0] },
+            { "_name": "yellow_chalk", "_type": "Lambertian", "diffuse": [1, 1, 0] },
+            { "_name": "blue_chalk",   "_type": "Lambertian", "diffuse": [0, 0, 1] }
+        ],
+        "shape": [
+            { "shader": { "_ref": "white_chalk"  }, "center": "-1.5 -1.5 -5", "radius": 1, "_name": "sphere1", "_type": "sphere" },
+            { "shader": { "_ref": "red_chalk"    }, "center": "1.5 -1.5 -5",  "radius": 1, "_name": "sphere2", "_type": "sphere" },
+            { "shader": { "_ref": "yellow_chalk" }, "center": "1.5 1.5 -5",   "radius": 1, "_name": "sphere3", "_type": "sphere" },
+            { "shader": { "_ref": "blue_chalk"   }, "center": "-1.5 1.5 -5",  "radius": 1, "_name": "sphere4", "_type": "sphere" }
+        ]
+    })";
+
+    std::shared_ptr<SceneLoader> sload(new SceneLoader(scene));
+    SceneParser_JSON sceneParser(sload);
+    sceneParser.parseStringData(datasource);
+        
+
+    
 
     Renderer renderer(fb,p,scene.lights);
 
-    scene.add_shape({bunny,LambertianShader{{1,0,0},1}});
-
+    
     // --- Render timer start ---
     auto start_time = std::chrono::high_resolution_clock::now();
 

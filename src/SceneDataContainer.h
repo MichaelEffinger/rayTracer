@@ -1,5 +1,5 @@
 #ifndef __SCENE_DATA_CONTAINER_H__
-#define __SCENE_DATA_CONTAINER_H__ 1
+#define __SCENE_DATA_CONTAINER_H__ 
 
 #include <string>
 #include <map>

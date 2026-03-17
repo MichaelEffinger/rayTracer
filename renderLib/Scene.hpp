@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <vector>
 #include "SceneObject.hpp"
 #include "PerspectiveCamera.hpp"
@@ -14,6 +15,8 @@ namespace ES{
         std::vector<PerspectiveCamera> cameras;
         RGB background;
         bool has_shadows;
+        std::size_t height;
+        std::size_t width;
 
         constexpr Scene(RGB background_) noexcept : background(background_){}
 

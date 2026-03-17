@@ -4,9 +4,9 @@
 namespace ES {
 
     using Shader = std::variant <
+        NormalShader,
         ConstantShader,
         RandomShader,
-        NormalShader,
         LambertianShader,
         BlinnPhongShader,
         MirrorShader,
