@@ -123,6 +123,15 @@ namespace ES{
         }
 
 
+        [[nodiscard]] constexpr pointer ptr() noexcept {
+            return data_.data();
+        }
+
+        [[nodiscard]] constexpr const_pointer ptr() const noexcept {
+            return data_.data();
+        }
+
+
         
 
 

@@ -92,9 +92,6 @@ int main(int argc, char *argv[]) {
     SceneParser_JSON sceneParser(sload);
     sceneParser.parseStringData(datasource);
         
-
-    
-
     Renderer renderer(fb,p,scene.lights);
 
     

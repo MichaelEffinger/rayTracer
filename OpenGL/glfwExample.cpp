@@ -5,6 +5,11 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+
+#include "../renderLib/AffineTransform3.hpp"
+#include "../renderLib/Triangle.hpp"
+#include "GL_helpers.hpp"
+
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -61,7 +66,7 @@ int main(void)
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glClearColor(0.0, 0.7, 1.0, 1.0);
+    glClearColor(0.9, 0.7, .85, 1.0);
 
     int fb_width, fb_height;
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
@@ -71,15 +76,88 @@ int main(void)
     // by the window frame.
     //
     // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
+
     float halfWidth = 15.0 / 2.0;
-    float halfHeight = halfWidth / aspectRatio;
-    glm::mat4 projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, -10.0f, 10.0f);
+    float halfHeight = halfWidth;
+
+    float left = -halfWidth;
+    float right = halfWidth;
+
+    float bottom = -halfHeight;
+    float top = halfHeight;
+
+    float near = 5.0f;
+    float far = -5.0f;
+
+    ES::AffineTransform3<float> M_ortho = ES::AffineTransform3<float>::orthographic(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far);
 
     GLint major_version;
     glGetIntegerv(GL_MAJOR_VERSION, &major_version);
     std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
 
+
     double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
+    GLuint m_triangleVBO[1];
+
+    ES::Vector3 V0(-3.0f, -3.0f, 0.0f);
+    ES::Vector3 V1(3.0f, -3.0f, 0.0f);
+    ES::Vector3 V2(0.0f, 3.0f, 0.0f);
+
+    ES::Triangle myTri{V0,V1,V2};
+
+
+    // create a Vertex Array Buffer to hold our triangle data                                               
+    glGenBuffers(1, m_triangleVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
+
+    // this is the actual triangle data that will be copied to                                              
+    // the GPU memory     
+    
+    std::vector host_VertexBuffer = ES::to_buffer(myTri, {1,0,0},{0,1,0},{0,0,1});
+
+    int numBytes = host_VertexBuffer.size() * sizeof(float);
+
+    // copy the numBytes from host_VertexBuffer t the GPU and store in                                      
+    // the currently bound VBO                                                                              
+    glBufferData(GL_ARRAY_BUFFER, numBytes, host_VertexBuffer.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // once copied, we no longer need the data on the host                                                  
+    host_VertexBuffer.clear();
+
+    
+    GLuint m_VAO;
+
+    glGenVertexArrays(1, &m_VAO);
+    glBindVertexArray(m_VAO);
+
+    // describe the vertex layout
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+    glBindVertexArray(0);
+
+    
+
+
+    // Create a shader using my GLSLObject class                                                            
+    sivelab::GLSLObject shader;
+    shader.addShader( "vertexShader_withMatrixTransformation.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+    shader.addShader( "fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.createProgram();
+
+    GLuint projMatrixID, viewMatrixID;
+    projMatrixID = shader.createUniform( "projMatrix" );
+    viewMatrixID = shader.createUniform( "viewMatrix" );
+
+    glm::vec3 m_pos(0,0,0), m_viewDir(0,0,-1);
+    glm::vec3 m_U(1,0,0), m_V(0,1,0), m_W(0,0,1);
+
+
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -94,11 +172,49 @@ int main(void)
 
         /* Render your objects here */
 
+        glm::mat4 M_view = glm::lookAt( m_pos, m_pos - m_W, m_V );
+
+        /* Render your objects here */
+        shader.activate();
+
+        ES::Matrix<float,4> myMat = M_ortho.to_matrix4();
+
+
+        // copy from the host to the device the view matrix and the projection matrix                                                                                       
+        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, myMat.ptr());
+        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr( M_view ));
+
+        glBindVertexArray(m_VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+
+        shader.deactivate();
+
         // Swap the front and back buffers
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
         glfwPollEvents();
+
+
+        float moveRatePerFrame = 0.05;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            m_pos = m_pos + -m_W * moveRatePerFrame;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            m_pos = m_pos - m_U * moveRatePerFrame;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            m_pos = m_pos + m_W * moveRatePerFrame;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            m_pos = m_pos + m_U * moveRatePerFrame;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
+        std::cout << "fps: " << 1.0 / timeDiff << std::endl;
+        }
 
         if (glfwGetKey( window, GLFW_KEY_T ) == GLFW_PRESS) {
             std::cout << "fps: " << 1.0/timeDiff << std::endl;
