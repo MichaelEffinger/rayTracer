@@ -1,5 +1,7 @@
 #pragma once
 #include <cmath>
+#include <tuple>
+#include <vector>
 #include "ES_math.hpp"
 #include "Ray.hpp"
 #include "PointN.hpp"
@@ -52,6 +54,7 @@ public:
     constexpr VectorN<float,3> normal(Hit& hit) const noexcept {
         return (hit.position - origin).normalize();
     }
+
 };
 
 }

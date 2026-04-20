@@ -13,11 +13,11 @@ namespace ES{
         public:
 
         FrameBuffer& fb;
-        const PerspectiveCamera& camera;
+        const RayCamera& camera;
         const std::vector<PointLight>& lights;
 
 
-        Renderer(FrameBuffer& buffer, PerspectiveCamera& camera_, std::vector<PointLight>& lights_) noexcept : fb{buffer}, camera{camera_}, lights{lights_} {}
+        Renderer(FrameBuffer& buffer, RayCamera& camera_, std::vector<PointLight>& lights_) noexcept : fb{buffer}, camera{camera_}, lights{lights_} {}
 
         void operator()(const Scene& shapes, std::size_t samples_per_pixel, float TMIN, float TMAX, std::size_t depth) const noexcept {
             std::mt19937 rng;

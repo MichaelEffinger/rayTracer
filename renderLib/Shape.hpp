@@ -5,10 +5,10 @@
 #include "Sphere.hpp"
 #include "Plane.hpp"
 #include "Triangle.hpp"
-#include "Mesh.hpp"
+#include "TriangleMesh.hpp"
 
 namespace ES{
-    using Shape = std::variant<Sphere, Plane, Triangle,Mesh>;
+    using Shape = std::variant<Sphere, Plane, Triangle,TriangleMesh>;
 
 
     

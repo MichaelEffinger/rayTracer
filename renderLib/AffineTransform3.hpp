@@ -40,7 +40,7 @@ namespace ES{
         }
  
   
-        [[nodiscard]] constexpr VectorN<T,3> transform_point(const VectorN<T,3> point) const noexcept{
+        [[nodiscard]] constexpr PointN<T,3> transform_point(const PointN<T,3> point) const noexcept{
             return linear*point + translation;
         }
         [[nodiscard]] constexpr VectorN<T,3> transform_vector(const VectorN<T,3> vec) const noexcept{
@@ -78,7 +78,7 @@ namespace ES{
         }
 
         [[nodiscard]] constexpr Matrix<T,3> get_linear() const noexcept{
-
+            return linear;
         }
 
         [[nodiscard]] constexpr VectorN<T,3> get_scale() const noexcept{
@@ -170,32 +170,33 @@ namespace ES{
 
             return result;
         }
-        static AffineTransform3 perspective(T fovY, T aspect, T nearZ, T farZ){
+
+        static constexpr AffineTransform3 perspective(T fovY, T aspect, T nearZ, T farZ){
             float f = 1.0f / tanf(fovY * 0.5f);
 
-    AffineTransform3 M;
+            AffineTransform3 M;
 
-    M(0,0) = f / aspect;  
-    M(0,1) = 0;  M(0,2) = 0;
-    M(0,3) = 0;
-    M(1,0) = 0;
-    
-    M(1,1) = f;  
-    M(1,2) = 0;
-    M(1,3) = 0;
+            M(0,0) = f / aspect;  
+            M(0,1) = 0;  M(0,2) = 0;
+            M(0,3) = 0;
+            M(1,0) = 0;
+            
+            M(1,1) = f;  
+            M(1,2) = 0;
+            M(1,3) = 0;
 
-    M(2,0) = 0;           
-    M(2,1) = 0;
-    M(2,2) = (farZ + nearZ) / (nearZ - farZ);
-    M(2,3) = (2 * farZ * nearZ) / (nearZ - farZ);
+            M(2,0) = 0;           
+            M(2,1) = 0;
+            M(2,2) = (farZ + nearZ) / (nearZ - farZ);
+            M(2,3) = (2 * farZ * nearZ) / (nearZ - farZ);
 
-    M(3,0) = 0;           
-    M(3,1) = 0;  
-    M(3,2) = -1;                          
-    M(3,3) = 0;
+            M(3,0) = 0;           
+            M(3,1) = 0;  
+            M(3,2) = -1;                          
+            M(3,3) = 0;
 
-    return M;
-}
+            return M;
+        }
 
     };
 }

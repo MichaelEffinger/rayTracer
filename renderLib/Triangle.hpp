@@ -12,20 +12,20 @@ namespace ES{
         PointN<float,3> A;
         PointN<float,3> B;
         PointN<float,3> C;
-        VectorN<float,3> face_normal;
+        VectorN<float,3> NA, NB, NC;
         
         constexpr Triangle() noexcept = default;
 
         constexpr Triangle(PointN<float,3> a, PointN<float,3> b, PointN<float,3> c) noexcept : A(a),B(b),C(c){
             VectorN<float,3> edge1 = B - A;
             VectorN<float,3> edge2 = C - A;
-            face_normal = edge1.cross(edge2).normalize();
+
+            VectorN<float,3> n = edge1.cross(edge2).normalize();
+
+            NA = NB = NC = n;
         }
-
-
-
-
-
+        
+        constexpr Triangle(PointN<float,3> a, PointN<float,3> b, PointN<float,3> c,VectorN<float,3> na, VectorN<float,3> nb, VectorN<float,3> nc) noexcept : A(a),B(b),C(c),NA(na),NB(nb),NC(nc) {}
 
         constexpr bool intersect(Ray<float> ray, float t_min, float t_max, Hit& hitstruct) const noexcept {
             VectorN<float,3> edge1 = B - A;
@@ -54,15 +54,16 @@ namespace ES{
             hitstruct.u = u;
             hitstruct.v = v;
             hitstruct.position = ray.at(t);
-            hitstruct.normal = face_normal;
+            hitstruct.normal = normal(hitstruct);
             return true;
         }
 
 
         constexpr VectorN<float,3> normal(const Hit& hit) const noexcept {
-            return face_normal;
+            float w = 1.0f - hit.u - hit.v;
+            return (NA * w + NB * hit.u + NC * hit.v).normalize();
         }
-   
+        
    
     };
 

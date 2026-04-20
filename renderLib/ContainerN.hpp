@@ -60,7 +60,7 @@ namespace ES{
         * This is a variadic template constructor that takes exactly N arguments.
         * Each argument is converted to the Container's element type T using static_cast.
         * ContainerN can be constructed using either `()` or `{}` initialization syntax.
-        *
+        *    Matrix<float, 2, 2> m;
         * @tparam Args Parameter pack representing each element of the Container.
         *         Must have exactly N arguments.
         * @param args The values to initialize the Container elements.

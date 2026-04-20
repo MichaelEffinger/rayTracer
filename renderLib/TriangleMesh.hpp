@@ -2,7 +2,7 @@
 #include "Triangle.hpp"
 
 namespace ES{
-    class Mesh{
+    class TriangleMesh{
 
         public:
 
@@ -10,7 +10,7 @@ namespace ES{
 
 
 
-        constexpr Mesh(std::vector<float> vertices) noexcept{
+        constexpr TriangleMesh(std::vector<float> vertices) noexcept{
             for (std::size_t i = 0; i + 8 < vertices.size(); i += 9) {
                 triangles.push_back(Triangle{
                     {vertices[i],     vertices[i+1],     vertices[i+2]},

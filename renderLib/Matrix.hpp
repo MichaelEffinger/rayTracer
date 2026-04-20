@@ -13,7 +13,6 @@
 namespace ES{
 
 
-
     //column-major matrices
     //Indexing at zero
     // speed focus, not abosolute correctness
@@ -50,11 +49,10 @@ namespace ES{
         static constexpr void can_negate(){return;}
         static constexpr void can_clamp(){return;}
 
-
         template<class... Args>
         constexpr Matrix(Args... columns) requires(sizeof...(Args) == M && (std::is_same_v<Args, VectorN<T,N>> && ...)){
             std::size_t col = 0;
-            ((std::memcpy(&data_[col * N], &columns[0], sizeof(T) * N), col++), ...);
+            ((std::copy(columns.cbegin(), columns.cend(), &data_[col * N]), col++), ...);
         }
 
 
@@ -126,8 +124,7 @@ namespace ES{
             T m1 =  (*this)[1]*( (*this)[4]* (*this)[10]* (*this)[15] +  (*this)[6]* (*this)[11]* (*this)[12] +  (*this)[7]* (*this)[8]* (*this)[14] -  (*this)[7]* (*this)[10]* (*this)[12] -  (*this)[6]* (*this)[8]* (*this)[15] -  (*this)[4]* (*this)[11]* (*this)[14]);
             T m2 =  (*this)[2]*( (*this)[4]* (*this)[9]* (*this)[15] +  (*this)[5]* (*this)[11]* (*this)[12] +  (*this)[7]* (*this)[8]* (*this)[13] -  (*this)[7]* (*this)[9]* (*this)[12] -  (*this)[5]* (*this)[8]* (*this)[15] -  (*this)[4]* (*this)[11]* (*this)[13]);
             T m3 =  (*this)[3]*( (*this)[4]* (*this)[9]* (*this)[14] +  (*this)[5]* (*this)[10]* (*this)[12] +  (*this)[6]* (*this)[8]* (*this)[13] -  (*this)[6]* (*this)[9]* (*this)[12] -  (*this)[5]* (*this)[8]* (*this)[14] -  (*this)[4]* (*this)[10]* (*this)[13]);
-          return m0 - m1 + m2 - m3;
-
+            return m0 - m1 + m2 - m3;
         }
         
         [[nodiscard]] constexpr T determinant() const noexcept requires (N == M && N > 4 && std::is_floating_point_v<T>) {
@@ -725,6 +722,17 @@ namespace ES{
             return *this;
         }
 
+
+        template<std::size_t O, std::size_t P>
+        [[nodiscard]] constexpr Matrix<T,O,P> submatrix() const noexcept requires(O < N && P <= M){
+            Matrix<T,O,P> result;
+            for(std::size_t i = 0; i < O; i++){
+                for(std::size_t j = 0; j < P; j++){
+                    result(i,j) = (*this)(i,j);
+                }
+            }
+            return result;
+        }
 
         [[nodiscard]] auto get() noexcept {
             return data_;

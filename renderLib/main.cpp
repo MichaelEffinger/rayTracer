@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     
     std::vector<float> vertices;
     readFloatsFromFile("trilist.dat",vertices);
-    Mesh bunny(vertices);
+    TriangleMesh bunny(vertices);
     
     
     float image_plane_width = 1.0f;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     */
     
 
-    ES::PerspectiveCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
+    ES::RayCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
     Scene scene({.3,.6,.7f});
     scene.height = height;
     scene.width = width;

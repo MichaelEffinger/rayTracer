@@ -63,6 +63,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+# tiny OBJ
+FetchContent_Declare(
+  tinyobjloader
+  GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+  GIT_TAG        v2.0.0rc13
+)
+
+FetchContent_MakeAvailable(tinyobjloader)
+
 # Boost
 # Necessary to get Win32 version to work, plus, not a bad idea to link statically for our purposes.
 if(WIN32)

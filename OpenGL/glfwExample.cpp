@@ -5,225 +5,228 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-
 #include "../renderLib/AffineTransform3.hpp"
 #include "../renderLib/Triangle.hpp"
 #include "GL_helpers.hpp"
-
-#define GLM_FORCE_RADIANS
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include "../renderLib/Camera.hpp"
 
 #include "GLSL.h"
 
-int CheckGLErrors(const char *s)
-{
-    int errCount = 0;
-    return errCount;
-}
-
 int main(void)
 {
-    /* Initialize the library */
     if (!glfwInit()) {
-        exit (-1);
+        exit(-1);
     }
-    // throw std::runtime_error("Error! initialization of glfw failed!");
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    /* Create a windowed mode window and its OpenGL context */
     int winWidth = 1000;
-    float aspectRatio = 1.0; // 16.0 / 9.0; // winWidth / (float)winHeight;
+    float aspectRatio = 1.0f;
     int winHeight = winWidth / aspectRatio;
-    
+
     GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "GLFW Example", NULL, NULL);
     if (!window) {
         std::cerr << "GLFW did not create a window!" << std::endl;
-        
         glfwTerminate();
         return -1;
     }
 
-    /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
     glewExperimental = GL_TRUE;
-    GLenum err=glewInit();
-    if(err != GLEW_OK) {
-        std::cerr <<"GLEW Error! glewInit failed, exiting."<< std::endl;
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "GLEW init failed" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    const GLubyte* renderer = glGetString (GL_RENDERER);
-    const GLubyte* version = glGetString (GL_VERSION);
-    std::cout << "Renderer: " << renderer << std::endl;
-    std::cout << "OpenGL version supported: " << version << std::endl;
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glClearColor(0.9, 0.7, .85, 1.0);
+    glClearColor(0.9f, 0.7f, 0.85f, 1.0f);
 
     int fb_width, fb_height;
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
     glViewport(0, 0, fb_width, fb_height);
 
-    // Need to set a projection matrix that fits the aspect ratio set
-    // by the window frame.
-    //
-    // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
+    GLuint m_triangleVBO[2];
 
-    float halfWidth = 15.0 / 2.0;
-    float halfHeight = halfWidth;
+    ES::Vector3 V0(-3.0f, -3.0f, 0.f);
+    ES::Vector3 V1(3.0f, -3.0f, 0.f);
+    ES::Vector3 V2(0.0f, 3.0f, 0.f);
 
-    float left = -halfWidth;
-    float right = halfWidth;
+    ES::Triangle myTri{V0, V1, V2};
 
-    float bottom = -halfHeight;
-    float top = halfHeight;
-
-    float near = 5.0f;
-    float far = -5.0f;
-
-    ES::AffineTransform3<float> M_ortho = ES::AffineTransform3<float>::orthographic(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far);
-
-    GLint major_version;
-    glGetIntegerv(GL_MAJOR_VERSION, &major_version);
-    std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
-
-
-    double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
-    GLuint m_triangleVBO[1];
-
-    ES::Vector3 V0(-3.0f, -3.0f, 0.0f);
-    ES::Vector3 V1(3.0f, -3.0f, 0.0f);
-    ES::Vector3 V2(0.0f, 3.0f, 0.0f);
-
-    ES::Triangle myTri{V0,V1,V2};
-
-
-    // create a Vertex Array Buffer to hold our triangle data                                               
     glGenBuffers(1, m_triangleVBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
 
-    // this is the actual triangle data that will be copied to                                              
-    // the GPU memory     
-    
-    std::vector host_VertexBuffer = ES::to_buffer(myTri, {1,0,0},{0,1,0},{0,0,1});
+    std::vector<float> host_VertexBuffer = ES::to_buffer(myTri);
 
-    int numBytes = host_VertexBuffer.size() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER,
+                 host_VertexBuffer.size() * sizeof(float),
+                 host_VertexBuffer.data(),
+                 GL_STATIC_DRAW);
 
-    // copy the numBytes from host_VertexBuffer t the GPU and store in                                      
-    // the currently bound VBO                                                                              
-    glBufferData(GL_ARRAY_BUFFER, numBytes, host_VertexBuffer.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // once copied, we no longer need the data on the host                                                  
     host_VertexBuffer.clear();
 
-    
     GLuint m_VAO;
-
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
 
-    // describe the vertex layout
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
     glBindVertexArray(0);
 
-    
-
-
-    // Create a shader using my GLSLObject class                                                            
     sivelab::GLSLObject shader;
-    shader.addShader( "vertexShader_withMatrixTransformation.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-    shader.addShader( "fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+    shader.addShader("vertexShader_PrepForPerFragment.glsl",
+                     sivelab::GLSLObject::VERTEX_SHADER);
+    shader.addShader("blinnPhong.glsl",            
+                     sivelab::GLSLObject::FRAGMENT_SHADER);
     shader.createProgram();
 
-    GLuint projMatrixID, viewMatrixID;
-    projMatrixID = shader.createUniform( "projMatrix" );
-    viewMatrixID = shader.createUniform( "viewMatrix" );
+    GLuint projMatrixID   = shader.createUniform("projMatrix");
+    GLuint viewMatrixID   = shader.createUniform("viewMatrix");
+    GLuint modelMatrixID  = shader.createUniform("modelMatrix");
+    GLuint normalMatrixID = shader.createUniform("normalMatrix");
+    GLuint lightPosID     = shader.createUniform("lightPosWorld");
+    GLuint diffuseID      = shader.createUniform("diffuseComponent");
+    GLuint specularID     = shader.createUniform("specularComponent");
+    GLuint shininessID    = shader.createUniform("shininess");
+    GLuint viewPosID      = shader.createUniform("viewPos");
+    GLuint lightColorID   = shader.createUniform("lightColor");
 
-    glm::vec3 m_pos(0,0,0), m_viewDir(0,0,-1);
-    glm::vec3 m_U(1,0,0), m_V(0,1,0), m_W(0,0,1);
 
+    ES::Camera cam;
+    cam.setPerspective(60.0f, aspectRatio, 0.1f, 100.0f);
+
+    ES::VectorN<float,3> camPos(0, 0, 3);
+
+    ES::VectorN<float,3> lightPos(0.f, 0.f, 10.f);
+
+    shader.activate();
+    glUniform3f(lightColorID, 1.0f, 1.0f, 1.0f);
+    glUniform3f(specularID,   1.0f, 1.0f, 1.0f);
+    glUniform1f(shininessID,  32.0f);
+    glUniform3f(lightPosID,   lightPos[0], lightPos[1], lightPos[2]); 
+    shader.deactivate();
+
+    double startFrameTime = glfwGetTime();
+
+    ES::AffineTransform3<float> model1Transform = ES::AffineTransform3<float>::from_translation({-.0f, .0f, 0.0f});
+    ES::AffineTransform3<float> model2Transform = ES::AffineTransform3<float>::from_translation({0.f, .0f, 0.0f});
+
+    ES::AffineTransform3<float> cameraTransform;
+
+    cam.setLookAt(
+        ES::PointN<float,3>{camPos[0], camPos[1], camPos[2]},
+        ES::PointN<float,3>{camPos[0], camPos[1], camPos[2] - 1.0f},
+        ES::VectorN<float,3>{0, 1, 0}
+    );
 
     
-    /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        endFrameTime = glfwGetTime();
-        timeDiff = endFrameTime - startFrameTime;
-        startFrameTime = glfwGetTime();
+        double endFrameTime = glfwGetTime();
+        double timeDiff = endFrameTime - startFrameTime;
+        startFrameTime = endFrameTime;
 
-        // Clear the window's buffer (or clear the screen to our
-        // background color)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        /* Render your objects here */
-
-        glm::mat4 M_view = glm::lookAt( m_pos, m_pos - m_W, m_V );
-
-        /* Render your objects here */
         shader.activate();
 
-        ES::Matrix<float,4> myMat = M_ortho.to_matrix4();
+        ES::Matrix<float,4> proj = cam.projectionMatrix();
+        ES::Matrix<float,4> view = cam.viewMatrix();
 
+        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, proj.ptr());
+        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, view.ptr());
 
-        // copy from the host to the device the view matrix and the projection matrix                                                                                       
-        glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, myMat.ptr());
-        glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr( M_view ));
+        auto currentPos = cam.getPosition(); 
+        glUniform3f(viewPosID, currentPos[0], currentPos[1], currentPos[2]);
 
         glBindVertexArray(m_VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindVertexArray(0);
 
+        ES::Matrix<float,4> model1 = model1Transform.to_matrix4();
+        ES::Matrix<float,4> normalMat1 = model1; 
+
+        glUniformMatrix4fv(modelMatrixID,  1, GL_FALSE, model1.ptr());
+        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, normalMat1.ptr());
+        glUniform3f(diffuseID, 0.0f, 0.0f, 1.0f);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        ES::Matrix<float,4> model2 = model1Transform.to_matrix4();
+        ES::Matrix<float,4> normalMat2 = model2; 
+
+        glUniformMatrix4fv(modelMatrixID,  1, GL_FALSE, model2.ptr());
+        glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, normalMat2.ptr());
+        glUniform3f(diffuseID, 1.0f, 0.0f, 0.0f);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glBindVertexArray(0);
         shader.deactivate();
 
-        // Swap the front and back buffers
         glfwSwapBuffers(window);
-
-        /* Poll for and process events */
         glfwPollEvents();
 
+        float moveRate = 0.05f;
 
-        float moveRatePerFrame = 0.05;
+        ES::VectorN<float,3> forward = cam.getForward(); 
+        ES::VectorN<float,3> right = cam.getRight();
+        ES::VectorN<float,3> up = cam.getUp();
 
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            m_pos = m_pos + -m_W * moveRatePerFrame;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            m_pos = m_pos - m_U * moveRatePerFrame;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            m_pos = m_pos + m_W * moveRatePerFrame;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            m_pos = m_pos + m_U * moveRatePerFrame;
-        }
+        
 
-        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-        std::cout << "fps: " << 1.0 / timeDiff << std::endl;
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+            cam.translate(up*moveRate);
         }
-
-        if (glfwGetKey( window, GLFW_KEY_T ) == GLFW_PRESS) {
-            std::cout << "fps: " << 1.0/timeDiff << std::endl;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+            cam.translate(-up*moveRate);
         }
-        if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+            cam.translate(-right*moveRate);
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+            cam.translate(right*moveRate);
+        }
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS){
+            cam.translate(-forward*moveRate);
+        }
+        if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
+            cam.translate(forward*moveRate);
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+            cam.rotate(up, ES::Angle<ES::in_degrees,float>{-1});
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+            cam.rotate(up, ES::Angle<ES::in_degrees,float>{1});
+        }
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+            cam.rotate(right,ES::Angle<ES::in_degrees,float>{1});
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+            cam.rotate(right,ES::Angle<ES::in_degrees,float>{-1});
+        }  
+        if (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS){
+            cam.rotate(forward,ES::Angle<ES::in_degrees,float>{-1});
+        }  
+        if (glfwGetKey(window, GLFW_KEY_SLASH) == GLFW_PRESS){
+            cam.rotate(forward,ES::Angle<ES::in_degrees,float>{1});
+        }  
+    
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, 1);
-        }
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+            std::cout << "fps: " << 1.0 / timeDiff << std::endl;
     }
-  
+
     glfwTerminate();
     return 0;
 }

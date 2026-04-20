@@ -1,12 +1,13 @@
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable (glfwExample
-  glfwExample.cpp 
+  glfwImplement.cpp 
   GLSL.cpp GLSL.h
 )
 
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
 target_link_libraries (glfwExample PRIVATE glfw)
+target_link_libraries(glfwExample PRIVATE tinyobjloader)
 
 if(APPLE)
     target_link_libraries(glfwExample PRIVATE

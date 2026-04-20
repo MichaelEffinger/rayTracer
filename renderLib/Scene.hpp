@@ -12,7 +12,7 @@ namespace ES{
 
         std::vector<SceneObject> shapes;
         std::vector<PointLight> lights;
-        std::vector<PerspectiveCamera> cameras;
+        std::vector<RayCamera> cameras;
         RGB background;
         bool has_shadows;
         std::size_t height;
@@ -37,7 +37,7 @@ namespace ES{
             return *this;
         }
 
-        constexpr Scene& add_camera(PerspectiveCamera camera){
+        constexpr Scene& add_camera(RayCamera camera){
             cameras.push_back(camera);
             return *this;
         }

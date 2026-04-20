@@ -206,7 +206,7 @@ namespace ES {
          * 
          * @return VectorN with each component as the distance from origin 
          */
-        [[nodiscard]] constexpr VectorN<T,N> to_vector(){
+        [[nodiscard]] constexpr VectorN<T,N> to_vector() const{
             VectorN<T,N> tempVec;
             std::copy(data_.cbegin(), data_.cend(), tempVec.begin());
             return tempVec;
