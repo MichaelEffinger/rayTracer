@@ -27,7 +27,7 @@ namespace ES{
             material = materialShader;
         }
 
-        void draw(const Matrix<float, 4>& proj, const Matrix<float, 4>& view,  const PointN<float, 3>& lightPos, const PointN<float, 3>& viewPos, const VectorN<float, 3>& lightColor,const Matrix<float, 4>& parentTransform = Matrix<float,4>::identity()) const noexcept {
+        void draw(const Matrix<float, 4>& proj, const Matrix<float, 4>& view,  const PointN<float, 3>& lightPos, const PointN<float, 3>& viewPos, const RGB& lightColor,const Matrix<float, 4>& parentTransform = Matrix<float,4>::identity()) const noexcept {
             if (!mesh || !material || !material->shader) return;
 
             Matrix<float, 4> finalTransform = parentTransform * transformation;
@@ -42,7 +42,7 @@ namespace ES{
 
             material->shader->SetVec3("lightPosWorld", lightPos.x(), lightPos.y(), lightPos.z());
             material->shader->SetVec3("viewPos", viewPos.x(), viewPos.y(), viewPos.z());
-            material->shader->SetVec3("lightColor", lightColor.x(), lightColor.y(), lightColor.z());
+            material->shader->SetVec3("lightColor", lightColor.R(), lightColor.G(), lightColor.B());
 
             if (!material->data.empty()) {
                 material->shader->SetFloatArray("u_materialData", material->data);

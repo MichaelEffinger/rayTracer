@@ -7,10 +7,10 @@
 namespace ES{
     class SceneObject{
     public:
-        Shader shade;
+        ShaderVariant shade;
         Shape obj;
 
-        constexpr SceneObject(Shape obj_, Shader shade_): obj(obj_), shade(shade_) {}
+        constexpr SceneObject(Shape obj_, ShaderVariant shade_): obj(obj_), shade(shade_) {}
 
         
     };

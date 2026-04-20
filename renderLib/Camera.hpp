@@ -22,6 +22,16 @@ private:
     }
 
 public:
+
+    Camera() = default;
+
+    Camera(float fovDeg, float aspectRatio, float nearP, float farP): fov(fovDeg), aspect(aspectRatio), nearPlane(nearP), farPlane(farP) {
+        position = PointN<float,3>{0,0,0};
+        U = VectorN<float,3>{1,0,0};
+        V = VectorN<float,3>{0,1,0};
+        W = VectorN<float,3>{0,0,1};
+    }
+
     Matrix<float,4> viewMatrix() const {
         Matrix<float,4> m = Matrix<float,4>::identity();
 

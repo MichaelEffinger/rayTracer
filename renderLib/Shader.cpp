@@ -9,7 +9,7 @@
 namespace ES {
 
     namespace shader {
-        RGB shade(const Shader& shader_, const Hit& hit, const Ray<float>& ray, std::size_t depth, const Scene& scene) noexcept {
+        RGB shade(const ShaderVariant& shader_, const Hit& hit, const Ray<float>& ray, std::size_t depth, const Scene& scene) noexcept {
             if (depth > 0) {
                 return std::visit([&](auto&& sh) -> RGB { return sh(hit, ray, depth, scene); }, shader_);
             }

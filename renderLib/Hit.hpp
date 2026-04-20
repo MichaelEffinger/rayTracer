@@ -5,7 +5,7 @@
 #include "PointN.hpp"
 #include "Ray.hpp"
 
-class Shader;
+class ShaderVariant;
 namespace ES{
 
 
@@ -15,7 +15,7 @@ namespace ES{
         float u = 0;
         float v = 0;
         bool front_face;
-        const Shader* shader = nullptr;
+        const ShaderVariant* shader = nullptr;
 
 
         PointN<float,3> position;

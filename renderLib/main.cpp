@@ -57,21 +57,20 @@ int main(int argc, char *argv[]) {
     ES::PointN<float,3> cam_pos{0,0,0};
     ES::VectorN<float,3> cam_dir{0,0,-1};
 
-    /*
+    
     PointLight light{{1,5,1},{1,1,1}};
     PointLight light2{{-1,5,1},{1,1,1}};
     PointLight light3{{-1,5,-5},{1,1,1}};
     std::vector<PointLight> lights{light, light2,light3};
-    */
     
 
     ES::RayCamera p(cam_pos, cam_dir, focal, image_plane_width, width, height);
     Scene scene({.3,.6,.7f});
     scene.height = height;
     scene.width = width;
-    /*
+    
     scene.add_light(light).add_light(light2).add_light(light3);
-    */
+
 
     std::string datasource = R"({
         "shader": [

@@ -8,7 +8,7 @@
 class SceneLoader : public ISceneLoader {
 private:
   ES::Scene &m_targetScene; // Reference to the external scene
-  std::unordered_map<std::string, ES::Shader> shaderMap;
+  std::unordered_map<std::string, ES::ShaderVariant> shaderMap;
 
 public:
   // The caller provides the scene to be filled
@@ -98,7 +98,7 @@ void addShape(const ISceneLoader::ShapeDesc &shapeDesc) override {
     std::cout << "Creating shape: type=" << shapeDesc.type << std::endl;
 
     // look up the shader, fall back to magenta if not found
-    ES::Shader shader = ES::ConstantShader(ES::RGB{1, 0, 1});
+    ES::ShaderVariant shader = ES::ConstantShader(ES::RGB{1, 0, 1});
     if (shaderMap.count(shapeDesc.shaderNameReference)) {
         shader = shaderMap[shapeDesc.shaderNameReference];
     } else {

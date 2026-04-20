@@ -2,7 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable (glfwExample
   glfwImplement.cpp 
-  GLSL.cpp GLSL.h
+  GLSL.cpp GLSL.h ../src/SceneParser_JSON.cpp
 )
 
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
