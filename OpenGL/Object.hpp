@@ -27,7 +27,10 @@ namespace ES{
             material = materialShader;
         }
 
-        void draw(const Matrix<float, 4>& proj, const Matrix<float, 4>& view,  const PointN<float, 3>& lightPos, const PointN<float, 3>& viewPos, const RGB& lightColor,const Matrix<float, 4>& parentTransform = Matrix<float,4>::identity()) const noexcept {
+        void draw(const Matrix<float, 4>& proj, const Matrix<float, 4>& view,  
+                  const PointN<float, 3>& lightPos, const PointN<float, 3>& viewPos, 
+                  const RGB& lightColor, const Matrix<float, 4>& parentTransform = Matrix<float,4>::identity()) const noexcept {
+            
             if (!mesh || !material || !material->shader) return;
 
             Matrix<float, 4> finalTransform = parentTransform * transformation;
@@ -36,17 +39,15 @@ namespace ES{
             material->shader->SetMat4("projMatrix", proj);
             material->shader->SetMat4("viewMatrix", view);
             material->shader->SetMat4("modelMatrix", finalTransform);
-
-            Matrix<float, 3> normalMatrix = finalTransform.submatrix<3,3>().inverse().transpose();
+            Matrix<float, 3> normalMatrix = finalTransform.inverse().transpose().submatrix<3,3>();
             material->shader->SetMat3("normalMatrix", normalMatrix);
 
             material->shader->SetVec3("lightPosWorld", lightPos.x(), lightPos.y(), lightPos.z());
             material->shader->SetVec3("viewPos", viewPos.x(), viewPos.y(), viewPos.z());
             material->shader->SetVec3("lightColor", lightColor.R(), lightColor.G(), lightColor.B());
 
-            if (!material->data.empty()) {
-                material->shader->SetFloatArray("u_materialData", material->data);
-            }
+            material->bind(); 
+
             mesh->draw();
         }
     };

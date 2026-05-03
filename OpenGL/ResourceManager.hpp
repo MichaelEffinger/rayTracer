@@ -9,6 +9,8 @@
 #include "../renderLib/Vertex.hpp"
 #include "Shader.hpp"
 #include "Material.hpp"
+#include "Texture.hpp"
+#include <filesystem>
 namespace ES {
 
     class ResourceManager {
@@ -19,19 +21,27 @@ namespace ES {
             return instance;
         }   
 
-        Shader* getShader(const std::string& name, const std::string& vPath = "", const std::string& fPath = "") {
+
+        Shader* getShader(const std::string& name, const std::string& vFileName = "", const std::string& fFileName = "") {
+            const std::string SHADER_PATH = "../../assets/shaders/";
             auto it = shaders.find(name);
             if (it != shaders.end()) {
                 return it->second.get();
             }
             
-            if (vPath.empty() || fPath.empty()) {
+            if (vFileName.empty() || fFileName.empty()) {
                 return nullptr; 
             }
 
-            auto newShader = std::make_unique<Shader>(vPath, fPath);
+            std::filesystem::path base(SHADER_PATH);
+            
+            std::string fullVPath = (base / vFileName).string();
+            std::string fullFPath = (base / fFileName).string();
+
+            auto newShader = std::make_unique<Shader>(fullVPath, fullFPath);
             Shader* ptr = newShader.get();
             shaders[name] = std::move(newShader);
+            
             return ptr;
         }
 
@@ -66,6 +76,28 @@ namespace ES {
             return ptr;
         }
 
+        Texture* getTexture(const std::string& name, const std::string& path = "", TextureType type = TextureType::DIFFUSE) {
+            auto it = textures.find(name);
+            if (it != textures.end()) {
+                return it->second.get();
+            }
+
+            // If it doesn't exist and no path was provided to load it, return null
+            if (path.empty()) {
+                return nullptr;
+            }
+
+            // Create it, store it, and return the raw pointer
+            auto newTexture = std::make_unique<Texture>(path, type);
+            Texture* ptr = newTexture.get();
+            textures[name] = std::move(newTexture);
+            return ptr;
+        }
+        
+        bool hasTexture(const std::string& name) const {
+            return textures.find(name) != textures.end();
+        }
+
         bool hasShader(const std::string& name) const {
             return shaders.find(name) != shaders.end();
         }
@@ -85,6 +117,6 @@ namespace ES {
         std::unordered_map<std::string, std::unique_ptr<Shader>> shaders;
         std::unordered_map<std::string, std::unique_ptr<Mesh>> meshes;
         std::unordered_map<std::string, std::unique_ptr<Material>> materials;
-        std::unordered_map<std::string, GLuint> textures;
+        std::unordered_map<std::string, std::unique_ptr<Texture>> textures;
     };
 }

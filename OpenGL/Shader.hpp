@@ -70,12 +70,16 @@ namespace ES{
             return programID;
         }
 
+        ~Shader() {
+            glDeleteProgram(programID);
+        }
 
         void SetMat4(const std::string& name, const Matrix<float,4>& mat) const{
             GLint location = glGetUniformLocation(programID, name.c_str());
 
             glUniformMatrix4fv(location,1,GL_FALSE, mat.ptr());
         }
+
         void SetMat3(const std::string& name, const Matrix<float,3>& mat) const{
             GLint location = glGetUniformLocation(programID, name.c_str());
 
@@ -94,6 +98,11 @@ namespace ES{
         void SetBool(const std::string& name, bool value) const {
             GLint location = glGetUniformLocation(programID, name.c_str());
             glUniform1i(location, static_cast<int>(value));
+        }
+        
+        void SetFloat(const std::string& name, float value) const {
+            GLint location = glGetUniformLocation(programID, name.c_str());
+            glUniform1f(location, value);
         }
         
         void SetFloatArray(const std::string& name, const std::vector<float>& values) const {

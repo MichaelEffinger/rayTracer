@@ -34,8 +34,6 @@ public:
                    const ES::Vector3<float> &viewDir,
                    float, float) override {
 
-        std::cout << "Creating camera: " << name << ", type:" << type << std::endl;
-
         ES::Camera cam(60.0f, 1.0f, 0.1f, 1000.0f);
 
         ES::PointN<float,3> eye{pos.x(), pos.y(), pos.z()};
@@ -53,13 +51,10 @@ public:
 
     void addPointLight(const ES::Vector3<float> &pos,
                        ES::RGB &intensity) override {
-        std::cout << "Creating point light." << std::endl;
         m_world.add_light({pos, intensity});
     }
 
     void addShader(const ISceneLoader::ShaderDesc &shaderDesc) override {
-
-        std::cout << "Creating shader: type=" << shaderDesc.type << std::endl;
 
         auto &manager = ES::ResourceManager::getInstance();
 
@@ -74,7 +69,11 @@ public:
             std::vector<float> data = {
                 shaderDesc.diffuse.data[0],
                 shaderDesc.diffuse.data[1],
-                shaderDesc.diffuse.data[2]
+                shaderDesc.diffuse.data[2],
+
+                1.0f, 1.0f, 1.0f,
+                16.0f,
+                1.0f
             };
 
             manager.getMaterial(shaderDesc.name, shader, data);
@@ -92,19 +91,19 @@ public:
                 shaderDesc.diffuse.data[0],
                 shaderDesc.diffuse.data[1],
                 shaderDesc.diffuse.data[2],
+
                 shaderDesc.specular.data[0],
                 shaderDesc.specular.data[1],
                 shaderDesc.specular.data[2],
-                shaderDesc.phongExp
+
+                shaderDesc.phongExp,
+                1.0f
             };
 
-            manager.getMaterial(shaderDesc.name, shader, data);
+            manager.getMaterial(shaderDesc.name + "hello", shader, data);
         }
 
         else {
-            std::cout << "Warning: unknown shader type '"
-                      << shaderDesc.type
-                      << "', using fallback." << std::endl;
 
             auto shader = manager.getShader(
                 "LambertianShader",
@@ -112,7 +111,12 @@ public:
                 "fragmentLambertian.glsl"
             );
 
-            manager.getMaterial("missing", shader, {1,0,1});
+            manager.getMaterial(shaderDesc.name, shader, {
+                1.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, 1.0f,
+                16.0f,
+                1.0f
+            });
         }
     }
 
@@ -120,19 +124,12 @@ public:
 
         auto &manager = ES::ResourceManager::getInstance();
 
-        std::cout << "Creating shape: type=" << shapeDesc.type << std::endl;
-
         ES::Material* myMat = nullptr;
 
         if (manager.hasMaterial(shapeDesc.shaderNameReference)) {
             myMat = manager.getMaterial(shapeDesc.shaderNameReference);
         }
         else {
-            std::cout << "Warning: material '"
-                      << shapeDesc.shaderNameReference
-                      << "' not found for shape '"
-                      << shapeDesc.name << "'"
-                      << std::endl;
 
             auto shader = manager.getShader(
                 "LambertianShader",
@@ -140,7 +137,12 @@ public:
                 "fragmentLambertian.glsl"
             );
 
-            myMat = manager.getMaterial("missing", shader, {1,0,1});
+            myMat = manager.getMaterial("missing", shader, {
+                1.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, 1.0f,
+                16.0f,
+                1.0f
+            });
         }
 
         if (shapeDesc.type == "sphere") {
@@ -196,20 +198,11 @@ public:
 
             m_world.instances.push_back(model);
         }
-
-        else {
-            std::cout << "Warning: unknown shape type '"
-                      << shapeDesc.type << "'" << std::endl;
-        }
     }
 
     void addTexture(const std::string &type,
                     const std::string &name,
-                    const std::string &sourceFile) override {
-        std::cout << "Creating texture: type=" << type
-                  << ", name=" << name
-                  << ", sourceFile=" << sourceFile << std::endl;
-    }
+                    const std::string &sourceFile) override {}
 
 public:
     int numShaders;

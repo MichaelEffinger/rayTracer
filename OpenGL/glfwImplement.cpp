@@ -11,8 +11,12 @@
 #include "../renderLib/Camera.hpp"
 
 #include "GLSL.h"
+#include "Material.hpp"
+#include "Model.hpp"
+#include "Object.hpp"
 #include "ResourceManager.hpp"
 #include "../renderLib/Sphere.hpp"
+#include "Texture.hpp"
 #include "shape_converter.hpp"
 #include "Material_helpers.hpp"
 #include "World.hpp"
@@ -21,6 +25,11 @@
 #include "OpenGLLoader.hpp"
 
 int main(void){
+
+    std::string SHADER_PATH = "../../assets/shaders/";
+    std::string MODEL_PATH  = "../../assets/models/";
+    std::string TEXTURE_PATH = "../../assets/textures/";
+
     if (!glfwInit()) {
         exit(-1);
     }
@@ -58,47 +67,77 @@ int main(void){
     glViewport(0, 0, fb_width, fb_height);
 
     ES::ResourceManager& res = ES::ResourceManager::getInstance();
-    ES::Shader* myShader   = res.getShader("BlinnPhong","vertexBlinnPhong.glsl","fragmentBlinnPhong.glsl");
-    ES::Shader* myLambert  = res.getShader("LambertianShader","vertexLambertian.glsl","fragmentLambertian.glsl");
+    ES::Shader* myShader0   = res.getShader("BlinnPhong","vertexShader.glsl","BlinnPhongTex.glsl");
+    ES::Shader* myShader   = res.getShader("BlinnPhong","vertexShader.glsl","BlinnPhong.glsl");
+    ES::Shader* myLambert  = res.getShader("LambertianShader","vertexShader.glsl","Lambertian.glsl");
+    ES::Shader* mySchlick = res.getShader("SchlickShader", "vertexShader.glsl","Schlick.glsl");
 
     ES::World world(fb_width, fb_height);
 
-
-    ES::Model myModel = ES::load_model_from_obj("Mario.obj", myLambert);
+    /*
+    auto myModel = ES::load_model_from_obj("../../assets/models/Mario/Mario.obj", myShader0);
     myModel.worldTransform = ES::AffineTransform3<float>::from_translation({0,0,2}).to_matrix4();
     world.add_instance(myModel);
 
-    ES::Model myGhost = ES::load_model_from_obj("Gold Ghost.obj", myShader);
+    ES::Model myGhost = ES::load_model_from_obj("../../assets/models/ghost/Ghost.obj", myShader0);
     myGhost.worldTransform = ES::AffineTransform3<float>::from_translation({2,2,2}).to_matrix4();
     world.add_instance(myGhost);
 
-    ES::Model myLuigi = ES::load_model_from_obj("Luigi.obj", myShader);
+    ES::Model myLuigi = ES::load_model_from_obj("../../assets/models/Luigi/Luigi.obj", myShader0);
     myLuigi.worldTransform = ES::AffineTransform3<float>::from_translation({-2,-2,2}).to_matrix4();
     world.add_instance(myLuigi);
 
-    ES::Model myDonkey = ES::load_model_from_obj("D.K..obj", myShader);
+    ES::Model myDonkey = ES::load_model_from_obj("../../assets/models/donkey/D.K..obj", myShader0);
     myDonkey.worldTransform = ES::AffineTransform3<float>::from_trs({-2,2,2}, ES::Quaternion<float>::identity(), {.2f,.2f,.2f}).to_matrix4();
     world.add_instance(myDonkey);
 
-    ES::Model myWario = ES::load_model_from_obj("Wario.obj", myShader);
+    ES::Model myWario = ES::load_model_from_obj("../../assets/models/Wario/Wario.obj", myShader0);
     myWario.worldTransform = ES::AffineTransform3<float>::from_translation({-4,0,2}).to_matrix4();
     world.add_instance(myWario);
 
-    ES::Model myPatty = ES::load_model_from_obj("Patty Wagon.obj", myShader);
+    ES::Model myPatty = ES::load_model_from_obj("../../assets/models/patty/Patty_Wagon.obj", myShader0);
+
     myPatty.worldTransform = ES::AffineTransform3<float>::from_translation({0,-5,2}).to_matrix4();
     world.add_instance(myPatty);
 
+    */
 
     ES::Sphere mySphere{{0,0,0},2};
-    auto myThing = ES::to_Mesh(mySphere,5);
+    auto myThing = ES::to_Mesh(mySphere,30);
 
-    auto blinner = ES::make_blinn_phong({1,0,0},32,{1,1,1});
+    ES::Texture theGlobe("../../assets/textures/earth_daymap_2k.png");
+    ES::Texture theSpecularGlobe("../../assets/textures/earth_specular_map_2k.png");
+
+    std::unordered_map<ES::TextureType, ES::Texture*> worldTextures;
+
+    worldTextures[ES::TextureType::DIFFUSE] = &theGlobe;
+    worldTextures[ES::TextureType::SPECULAR] = &theSpecularGlobe;
+   
+    ES::Material mymatter{myShader0,{0.7f, 0.7f, 0.7f, 0.1f, 0.1f, 0.1f, 15.0f, 1.0f},worldTextures};
+
+
+    ES::Material slick;
+    slick.shader = mySchlick; 
+    slick.data ={1,.82,0,.5,.5,0,0,0};
 
     ES::Object superSphere{
         myThing,
-        ES::Matrix<float,4>::identity(),
-        &blinner
+        ES::Matrix<float, 4>::identity(),
+        &mymatter
     };
+
+    ES::Object sSphere{
+        myThing,
+        ES::AffineTransform3<float>::from_translation({2,2,2}).to_matrix4(),
+        &slick
+    };
+
+
+    ES::Model theSchlick{{sSphere},ES::Matrix<float,4>::identity()};
+    ES::Model theWholeGlobe{{superSphere},ES::Matrix<float,4>::identity()};
+
+    // world.add_instance(theWholeGlobe);
+    world.add_instance(theSchlick);
 
     ES::Camera cam;
     cam.setPerspective(60.0f, aspectRatio, 0.1f, 100.0f);
@@ -113,8 +152,8 @@ int main(void){
     world.add_camera(cam);
 
 
-    ES::PointN<float,3> lightPos(5.f,5.f,5.f);
-    ES::RGB lightColor(1.f,1.f,1.f);
+    ES::PointN<float,3> lightPos(-5.f,5.f,5.f);
+    ES::RGB lightColor(2.f,2.f,2.f);
     world.add_light({lightPos, lightColor});
 
 
@@ -132,12 +171,46 @@ int main(void){
             { "shader": { "_ref": "blue_chalk"   }, "center": "-1.5 1.5 -5",  "radius": 1, "_name": "sphere4", "_type": "sphere" }
         ]
     })";
+    
+    std::vector<ES::Vertex> vertices{
+        { ES::PointN<float,3>{ -1.0f,  1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.0f, 0.0f } }, // top-left
+        { ES::PointN<float,3>{ -1.0f, -1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.0f, 0.5f } }, // bottom-left
+        { ES::PointN<float,3>{  1.0f, -1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.5f, 0.5f } }, // bottom-right
+        { ES::PointN<float,3>{  1.0f,  1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.5f, 0.0f } }, // top-right
+        { ES::PointN<float,3>{  1.0f,  1.0f,  1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 0.5f, 0.5f } }, // top-left
+        { ES::PointN<float,3>{  1.0f, -1.0f,  1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 0.5f, 1.0f } }, // bottom-left
+        { ES::PointN<float,3>{  1.0f, -1.0f, -1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 1.0f, 1.0f } }, // bottom-right
+        { ES::PointN<float,3>{  1.0f,  1.0f, -1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 1.0f, 0.5f } }, // top-right
+    };
+    
+    std::vector<unsigned int> indices{
+        0, 1, 2,   0, 2, 3,   // Face 1
+        4, 5, 6,   4, 6, 7,   // Face 2
+    };
 
+    std::unordered_map<ES::TextureType, ES::Texture*> textures;
+
+    ES::Texture mytex("../../assets/textures/textureAtlas.png");
+    textures[ES::TextureType::DIFFUSE] =  &mytex;
+
+
+    ES::Material mymat{myShader0,{0.7f, 0.7f, 0.7f, 0.1f, 0.1f, 0.1f, 32.0f, 1.0f},textures};
+    
+    ES::Mesh weirdShape{vertices,indices};
+    
+    ES::Object strangeObj{&weirdShape,ES::AffineTransform3<float>::from_translation({0.0f,0.0f,0.0f}).to_matrix4(),&mymat};
+
+    ES::Model mymodel{{strangeObj},ES::AffineTransform3<float>::from_translation({0.0f,0.0f,0.0f}).to_matrix4()};
+
+
+    world.add_instance(mymodel);
 
     std::shared_ptr<OpenGLSceneLoader> sload(new OpenGLSceneLoader(world));
     SceneParser_JSON sceneParser(sload);
     sceneParser.parseStringData(datasource);
 
+    
+    float globeRotationAngle = 0.0f;
     double startFrameTime = glfwGetTime();
 
     while (!glfwWindowShouldClose(window)) {

@@ -13,7 +13,6 @@
 
 namespace ES{
 
-    // greyScale
     inline std::vector<float > to_buffer(ES::Triangle tri,RGB color1, RGB color2, RGB color3){
         return{
             tri.A.x(), tri.A.y(), tri.A.z(),
@@ -38,8 +37,8 @@ namespace ES{
     }
 
     inline Model load_model_from_obj(const std::string& path, Shader* shaderPtr) {
-
-        OBJModel rawData = OBJLoader::load(path);
+        // 1. Load the raw data from the file
+        OBJModel rawData = OBJLoader::load(path); 
         Model finalModel;
         
         ResourceManager& res = ResourceManager::getInstance();
@@ -53,6 +52,13 @@ namespace ES{
             std::string matName = path + "_mat_" + std::to_string(i);
             Material* partMaterial = res.getMaterial(matName, shaderPtr, part.material_data);
 
+            if (!part.tex_path.empty()) {
+                Texture* texPtr = res.getTexture(part.tex_path, part.tex_path);
+                
+                if (texPtr) {
+                    partMaterial->addTexture(TextureType::DIFFUSE, texPtr);
+                }
+            }
             Object objPart(meshPtr, Matrix<float, 4>::identity(), partMaterial);
             finalModel.AddPart(objPart);
         }
