@@ -2,6 +2,7 @@
 #include "../renderLib/Camera.hpp"
 #include "../renderLib/VectorN.hpp"
 #include "../renderLib/PointLight.hpp"
+#include "Material.hpp"
 #include "Model.hpp"
 #include "../renderLib/Camera.hpp"
 #include <ratio>
@@ -15,7 +16,8 @@ namespace ES{
         
         bool hasCamera = false;
         bool hasLight = false;
-        
+
+        Texture* environmentMap = nullptr;
 
         
         public:
@@ -57,8 +59,16 @@ namespace ES{
 
 
         void draw(){
-            for(auto object: instances){
-                object.draw(camera.projectionMatrix(),camera.viewMatrix(),light.position, camera.getPosition(),light.intensity);
+            for(auto model: instances){
+
+                for(auto& part : model.parts){
+                    if(part.material->type == RenderType::Mirror /* || part.material->type == RenderType::Glass */){
+                        if(environmentMap != nullptr){
+                            part.material->addTexture(TextureType::CUBEMAP, environmentMap);
+                        }
+                    }
+                }
+                model.draw(camera.projectionMatrix(),camera.viewMatrix(),light.position, camera.getPosition(),light.intensity);
             }
         }
         

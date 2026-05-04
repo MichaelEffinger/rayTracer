@@ -109,7 +109,7 @@ namespace ES {
         bool hasMaterial(const std::string& name) const {
             return materials.find(name) != materials.end();
         }
-    private:
+        
         ResourceManager() {}
         ResourceManager(const ResourceManager&) = delete;
         void operator=(const ResourceManager&) = delete;
@@ -118,5 +118,6 @@ namespace ES {
         std::unordered_map<std::string, std::unique_ptr<Mesh>> meshes;
         std::unordered_map<std::string, std::unique_ptr<Material>> materials;
         std::unordered_map<std::string, std::unique_ptr<Texture>> textures;
+    private:
     };
 }

@@ -12,6 +12,7 @@ namespace ES {
         SPECULAR,
         NORMAL,
         HEIGHT,
+        CUBEMAP,
         NONE
     };
 
@@ -128,5 +129,47 @@ namespace ES {
         ~Texture() {
             release();
         }
+
+
+    Texture(const std::vector<std::string>& faces) : type(TextureType::CUBEMAP) {
+        glGenTextures(1, &id);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, id);
+
+        for (unsigned int i = 0; i < faces.size(); i++) {
+            try {
+                png::image<png::rgba_pixel> image(faces[i]);
+                int w = image.get_width();
+                int h = image.get_height();
+
+                std::vector<unsigned char> data;
+                data.reserve(w * h * 4);
+
+                for (std::size_t y = 0; y < (std::size_t)h; y++) {
+                    for (std::size_t x = 0; x < (std::size_t)w; x++) {
+                        png::rgba_pixel pixel = image[y][x]; 
+                        data.push_back(pixel.red);
+                        data.push_back(pixel.green);
+                        data.push_back(pixel.blue);
+                        data.push_back(pixel.alpha);
+                    }
+                }
+
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, 
+                            w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+            } catch (const std::exception& e) {
+                std::cerr << "CubeMap Load Error at face " << i << ": " << e.what() << std::endl;
+            }
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+    }
+
+
+
     };
 }

@@ -5,6 +5,7 @@ in vec3 FragPos;
 in vec3 Normal;
 
 uniform vec3 lightPosWorld;  
+uniform vec3 viewPos;
 uniform vec3 lightColor;
 uniform float u_materialData[8]; 
 
@@ -14,12 +15,14 @@ void main()
     float alpha = u_materialData[7];
 
     vec3 N = normalize(Normal);
-    vec3 L = normalize(lightPosWorld - FragPos);
+    vec3 V = normalize(viewPos - FragPos);
 
-    vec3 ambient = 0.08 * baseColor * lightColor;
+    float rim = 1.0 - max(dot(N, V), 0.0);
 
-    float diff = max(dot(N, L), 0.0);
-    vec3 diffuse = diff * baseColor * lightColor;
+    rim = pow(rim, 2);
 
-    fragmentColor = vec4(ambient + diffuse, alpha);
+    vec3 black = vec3(0.0);
+    vec3 color = mix(black, baseColor, rim);
+
+    fragmentColor = vec4(color, alpha);
 }

@@ -73,11 +73,11 @@ int main(void){
     ES::Shader* mySchlick = res.getShader("SchlickShader", "vertexShader.glsl","Schlick.glsl");
 
     ES::World world(fb_width, fb_height);
-
-    /*
+    
     auto myModel = ES::load_model_from_obj("../../assets/models/Mario/Mario.obj", myShader0);
     myModel.worldTransform = ES::AffineTransform3<float>::from_translation({0,0,2}).to_matrix4();
     world.add_instance(myModel);
+
 
     ES::Model myGhost = ES::load_model_from_obj("../../assets/models/ghost/Ghost.obj", myShader0);
     myGhost.worldTransform = ES::AffineTransform3<float>::from_translation({2,2,2}).to_matrix4();
@@ -92,7 +92,7 @@ int main(void){
     world.add_instance(myDonkey);
 
     ES::Model myWario = ES::load_model_from_obj("../../assets/models/Wario/Wario.obj", myShader0);
-    myWario.worldTransform = ES::AffineTransform3<float>::from_translation({-4,0,2}).to_matrix4();
+    myWario.worldTransform = ES::AffineTransform3<float>::from_translation({-5,-5,5}).to_matrix4();
     world.add_instance(myWario);
 
     ES::Model myPatty = ES::load_model_from_obj("../../assets/models/patty/Patty_Wagon.obj", myShader0);
@@ -100,7 +100,6 @@ int main(void){
     myPatty.worldTransform = ES::AffineTransform3<float>::from_translation({0,-5,2}).to_matrix4();
     world.add_instance(myPatty);
 
-    */
 
     ES::Sphere mySphere{{0,0,0},2};
     auto myThing = ES::to_Mesh(mySphere,30);
@@ -137,7 +136,7 @@ int main(void){
     ES::Model theWholeGlobe{{superSphere},ES::Matrix<float,4>::identity()};
 
     // world.add_instance(theWholeGlobe);
-    world.add_instance(theSchlick);
+    // world.add_instance(theSchlick);
 
     ES::Camera cam;
     cam.setPerspective(60.0f, aspectRatio, 0.1f, 100.0f);
@@ -172,39 +171,6 @@ int main(void){
         ]
     })";
     
-    std::vector<ES::Vertex> vertices{
-        { ES::PointN<float,3>{ -1.0f,  1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.0f, 0.0f } }, // top-left
-        { ES::PointN<float,3>{ -1.0f, -1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.0f, 0.5f } }, // bottom-left
-        { ES::PointN<float,3>{  1.0f, -1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.5f, 0.5f } }, // bottom-right
-        { ES::PointN<float,3>{  1.0f,  1.0f,  1.0f },  ES::VectorN<float,3>{ 0.0f, 0.0f, 1.0f },  { 0.5f, 0.0f } }, // top-right
-        { ES::PointN<float,3>{  1.0f,  1.0f,  1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 0.5f, 0.5f } }, // top-left
-        { ES::PointN<float,3>{  1.0f, -1.0f,  1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 0.5f, 1.0f } }, // bottom-left
-        { ES::PointN<float,3>{  1.0f, -1.0f, -1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 1.0f, 1.0f } }, // bottom-right
-        { ES::PointN<float,3>{  1.0f,  1.0f, -1.0f },  ES::VectorN<float,3>{ 1.0f, 0.0f, 0.0f },  { 1.0f, 0.5f } }, // top-right
-    };
-    
-    std::vector<unsigned int> indices{
-        0, 1, 2,   0, 2, 3,   // Face 1
-        4, 5, 6,   4, 6, 7,   // Face 2
-    };
-
-    std::unordered_map<ES::TextureType, ES::Texture*> textures;
-
-    ES::Texture mytex("../../assets/textures/textureAtlas.png");
-    textures[ES::TextureType::DIFFUSE] =  &mytex;
-
-
-    ES::Material mymat{myShader0,{0.7f, 0.7f, 0.7f, 0.1f, 0.1f, 0.1f, 32.0f, 1.0f},textures};
-    
-    ES::Mesh weirdShape{vertices,indices};
-    
-    ES::Object strangeObj{&weirdShape,ES::AffineTransform3<float>::from_translation({0.0f,0.0f,0.0f}).to_matrix4(),&mymat};
-
-    ES::Model mymodel{{strangeObj},ES::AffineTransform3<float>::from_translation({0.0f,0.0f,0.0f}).to_matrix4()};
-
-
-    world.add_instance(mymodel);
-
     std::shared_ptr<OpenGLSceneLoader> sload(new OpenGLSceneLoader(world));
     SceneParser_JSON sceneParser(sload);
     sceneParser.parseStringData(datasource);
