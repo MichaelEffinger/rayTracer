@@ -9,44 +9,43 @@ uniform mat4 viewMatrix;
 uniform mat4 modelMatrix;
 uniform mat3 normalMatrix;
 
+uniform float u_time; 
 uniform vec3 u_blackHolePos;
-uniform float u_twistFactor;
 
 out vec3 FragPos;
 out vec3 Normal;
 out vec2 TexCoords;
 
+
 void main(void)
 {
-    // world space position
     vec4 worldPos4 = modelMatrix * vec4(in_Position, 1.0);
-    vec3 worldPos = vec3(worldPos4);
+    vec3 worldPos = worldPos4.xyz;
 
-    // vector toward black hole
     vec3 toBH = worldPos - u_blackHolePos;
     float dist = length(toBH);
     vec3 dir = normalize(toBH);
+    
+    float strength = 5 / (dist + 2);
 
-    // falloff (strong near center, weak far away)
-    float strength = 10.0 / (1.0 + dist * dist);
 
-    // radial pull inward
-    vec3 radial = -dir * strength * 2.0;
+    float angle = strength * 20;
+    
+    float s = sin(angle);
+    float c = cos(angle);
 
-    // stable perpendicular direction for swirling
-    vec3 up = vec3(0.0, 1.0, 0.0);
-    vec3 tangent = normalize(cross(up, dir));
+    vec3 rotatedPos = toBH;
+    rotatedPos.x = toBH.x * c - toBH.z * s;
+    rotatedPos.z = toBH.x * s + toBH.z * c;
 
-    // twist around black hole
-    vec3 swirl = tangent * strength * u_twistFactor;
 
-    // apply deformation
-    worldPos += radial;
-    worldPos += swirl;
+    float stretch = 5 + (strength * 2.0);
+    vec3 finalPos = u_blackHolePos + (rotatedPos / stretch);
 
-    FragPos = worldPos;
+
+    FragPos = finalPos;
     Normal = normalize(normalMatrix * in_Normal);
     TexCoords = in_TexCoords;
 
-    gl_Position = projMatrix * viewMatrix * vec4(worldPos, 1.0);
+    gl_Position = projMatrix * viewMatrix * vec4(finalPos, 1.0);
 }

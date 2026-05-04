@@ -67,10 +67,10 @@ int main(void){
     glViewport(0, 0, fb_width, fb_height);
 
     ES::ResourceManager& res = ES::ResourceManager::getInstance();
-    ES::Shader* myShader0   = res.getShader("BlinnPhong","vertexShader.glsl","BlinnPhongTex.glsl");
-    ES::Shader* myShader   = res.getShader("BlinnPhong","vertexShader.glsl","BlinnPhong.glsl");
-    ES::Shader* myLambert  = res.getShader("LambertianShader","vertexShader.glsl","Lambertian.glsl");
-    ES::Shader* mySchlick = res.getShader("SchlickShader", "vertexShader.glsl","Schlick.glsl");
+    ES::Shader* myShader0   = res.getShader("BlinnPhong","Spaghetti.glsl","BlinnPhongTex.glsl");
+    ES::Shader* myShader   = res.getShader("BlinnPhong","Spaghetti.glsl","BlinnPhong.glsl");
+    ES::Shader* myLambert  = res.getShader("LambertianShader","Spaghetti.glsl","Lambertian.glsl");
+    ES::Shader* mySchlick = res.getShader("SchlickShader", "Spaghetti.glsl","Schlick.glsl");
 
     ES::World world(fb_width, fb_height);
     
