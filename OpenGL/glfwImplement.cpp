@@ -39,9 +39,10 @@ int main(void){
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    int winWidth = 1000;
-    float aspectRatio = 1.0f;
-    int winHeight = static_cast<int>(winWidth / aspectRatio);
+    int winWidth = 1920;
+    int winHeight = 1080;
+    
+    float aspectRatio = (float)winWidth / (float)winHeight;
 
     GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "GLFW Example", NULL, NULL);
     if (!window) {
@@ -67,76 +68,155 @@ int main(void){
     glViewport(0, 0, fb_width, fb_height);
 
     ES::ResourceManager& res = ES::ResourceManager::getInstance();
-    ES::Shader* myShader0   = res.getShader("BlinnPhong","Spaghetti.glsl","BlinnPhongTex.glsl");
-    ES::Shader* myShader   = res.getShader("BlinnPhong","Spaghetti.glsl","BlinnPhong.glsl");
-    ES::Shader* myLambert  = res.getShader("LambertianShader","Spaghetti.glsl","Lambertian.glsl");
-    ES::Shader* mySchlick = res.getShader("SchlickShader", "Spaghetti.glsl","Schlick.glsl");
+    ES::Shader* myShader0   = res.getShader("BlinnPhong","vertexShader.glsl","BlinnPhongTex.glsl");
+    ES::Shader* myShader   = res.getShader("BlinnPhong","vertexShader.glsl","BlinnPhong.glsl");
+    ES::Shader* myLambert  = res.getShader("LambertianShader","vertexShader.glsl","Lambertian.glsl");
+    ES::Shader* mySchlick = res.getShader("SchlickShader", "vertexShader.glsl","Schlick.glsl");
 
     ES::World world(fb_width, fb_height);
+
+    // -------------------------- MODELS -------------------------
+    auto chess = ES::load_model_from_obj("../../assets/models/Chess/Chess_Board.obj", myShader0);
+    chess.worldTransform = ES::AffineTransform3<float>::from_translation({0,0,2}).to_matrix4();
+    world.add_instance(chess);
+
+    { // goombas
+        auto goomba = ES::load_model_from_obj("../../assets/models/Goomba/goomba.obj", myShader0);
+
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({.8,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({2.5,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({4.25,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({6.00,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({-.8,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({-2.5,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({-4.25,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+        goomba.worldTransform = ES::AffineTransform3<float>::from_trs({-6.00,1.5,-2},ES::Quaternion<float>::identity(),{.1,.1,.1}).to_matrix4();
+        world.add_instance(goomba);
+    }
     
-    auto myModel = ES::load_model_from_obj("../../assets/models/Mario/Mario.obj", myShader0);
-    myModel.worldTransform = ES::AffineTransform3<float>::from_translation({0,0,2}).to_matrix4();
-    world.add_instance(myModel);
+    { // waddles
+        auto waddle = ES::load_model_from_obj("../../assets/models/Waddle Dee/waddledee.obj", myShader0);
+
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({.8,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({2.5,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({4.25,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({6.00,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({-.8,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({-2.5,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({-4.25,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        waddle.worldTransform = ES::AffineTransform3<float>::from_trs({-6.00,1.6,6.25},{0,0,1,0},{6.5,6.5,6.5}).to_matrix4();
+        world.add_instance(waddle);
+        
+    
+    }
+
+    { // gordo
+        auto gordo = ES::load_model_from_obj("../../assets/models/gordo/DolGordo.obj", myShader0);
 
 
-    ES::Model myGhost = ES::load_model_from_obj("../../assets/models/ghost/Ghost.obj", myShader0);
-    myGhost.worldTransform = ES::AffineTransform3<float>::from_translation({2,2,2}).to_matrix4();
-    world.add_instance(myGhost);
-
-    ES::Model myLuigi = ES::load_model_from_obj("../../assets/models/Luigi/Luigi.obj", myShader0);
-    myLuigi.worldTransform = ES::AffineTransform3<float>::from_translation({-2,-2,2}).to_matrix4();
-    world.add_instance(myLuigi);
-
-    ES::Model myDonkey = ES::load_model_from_obj("../../assets/models/donkey/D.K..obj", myShader0);
-    myDonkey.worldTransform = ES::AffineTransform3<float>::from_trs({-2,2,2}, ES::Quaternion<float>::identity(), {.2f,.2f,.2f}).to_matrix4();
-    world.add_instance(myDonkey);
-
-    ES::Model myWario = ES::load_model_from_obj("../../assets/models/Wario/Wario.obj", myShader0);
-    myWario.worldTransform = ES::AffineTransform3<float>::from_translation({-5,-5,5}).to_matrix4();
-    world.add_instance(myWario);
-
-    ES::Model myPatty = ES::load_model_from_obj("../../assets/models/patty/Patty_Wagon.obj", myShader0);
-
-    myPatty.worldTransform = ES::AffineTransform3<float>::from_translation({0,-5,2}).to_matrix4();
-    world.add_instance(myPatty);
+        gordo.worldTransform = ES::AffineTransform3<float>::from_trs({2.5,1.5,8},{0,0,1,0},{.15,.15,.15}).to_matrix4();
+        world.add_instance(gordo);
+        gordo.worldTransform = ES::AffineTransform3<float>::from_trs({-2.5,1.5,8},ES::Quaternion<float>{0,0,1,0}*ES::Quaternion<float>{0.86602540,0,-0.5,0},{.15,.15,.15}).to_matrix4();
+        world.add_instance(gordo);
+    }
 
 
-    ES::Sphere mySphere{{0,0,0},2};
-    auto myThing = ES::to_Mesh(mySphere,30);
+    { // DeeDeeDee and Bonkers
+        auto dedede = ES::load_model_from_obj("../../assets/models/King Dedede/dededetroph.obj", myShader0);
+        dedede.worldTransform = ES::AffineTransform3<float>::from_trs({-6,1.5,8.5},{0,0,1,0},{.10,.10,.10}).to_matrix4();
+        world.add_instance(dedede);
 
-    ES::Texture theGlobe("../../assets/textures/earth_daymap_2k.png");
-    ES::Texture theSpecularGlobe("../../assets/textures/earth_specular_map_2k.png");
+        auto bonkers = ES::load_model_from_obj("../../assets/models/bonkers/DolBonkers.obj", myShader0);
+        bonkers.worldTransform = ES::AffineTransform3<float>::from_trs({6,1.5,8},ES::Quaternion<float>{0,0,1,0}*ES::Quaternion<float>{0.86602540,0,-0.5,0},{.15,.15,.15}).to_matrix4();
+        world.add_instance(bonkers);
+    }
 
-    std::unordered_map<ES::TextureType, ES::Texture*> worldTextures;
-
-    worldTextures[ES::TextureType::DIFFUSE] = &theGlobe;
-    worldTextures[ES::TextureType::SPECULAR] = &theSpecularGlobe;
-   
-    ES::Material mymatter{myShader0,{0.7f, 0.7f, 0.7f, 0.1f, 0.1f, 0.1f, 15.0f, 1.0f},worldTextures};
-
-
-    ES::Material slick;
-    slick.shader = mySchlick; 
-    slick.data ={1,.82,0,.5,.5,0,0,0};
-
-    ES::Object superSphere{
-        myThing,
-        ES::Matrix<float, 4>::identity(),
-        &mymatter
-    };
-
-    ES::Object sSphere{
-        myThing,
-        ES::AffineTransform3<float>::from_translation({2,2,2}).to_matrix4(),
-        &slick
-    };
+    { // kibbles
+        auto kibbles = ES::load_model_from_obj("../../assets/models/Sir/DolSirkibble.obj", myShader0);
 
 
-    ES::Model theSchlick{{sSphere},ES::Matrix<float,4>::identity()};
-    ES::Model theWholeGlobe{{superSphere},ES::Matrix<float,4>::identity()};
+        kibbles.worldTransform = ES::AffineTransform3<float>::from_trs({4.25,1.5,8},ES::Quaternion<float>{0,0,1,0}*ES::Quaternion<float>{0.86602540,0,-0.5,0},{.12,.12,.12}).to_matrix4();
+        world.add_instance(kibbles);
+        kibbles.worldTransform = ES::AffineTransform3<float>::from_trs({-4.25,1.5,8},ES::Quaternion<float>{0,0,1,0}*ES::Quaternion<float>{0.86602540,0,-0.5,0},{.12,.12,.12}).to_matrix4();
+        world.add_instance(kibbles);
 
-    // world.add_instance(theWholeGlobe);
-    // world.add_instance(theSchlick);
+    }
+
+    { // kirby and meta knight
+
+        auto kirby = ES::load_model_from_obj("../../assets/models/Kirby/kirby.obj", myShader0);
+        kirby.worldTransform = ES::AffineTransform3<float>::from_trs({.8,1.5,8},ES::Quaternion<float>{0,0,1,0},{.12,.12,.12}).to_matrix4();
+        world.add_instance(kirby);
+
+
+        auto meta = ES::load_model_from_obj("../../assets/models/Meta Knight/metaknight.obj", myShader0);
+        meta.worldTransform = ES::AffineTransform3<float>::from_trs({-.8,1.5,8},ES::Quaternion<float>{0,0,1,0},{.08,.08,.08}).to_matrix4();
+        world.add_instance(meta);
+
+
+    }
+
+
+    { // peach and mario 
+
+        auto mario = ES::load_model_from_obj("../../assets/models/Mario/mariotroph.obj", myShader0);
+        mario.worldTransform = ES::AffineTransform3<float>::from_trs({.8,1.5,-4},ES::Quaternion<float>::identity(),{.2,.2,.2}).to_matrix4();
+        world.add_instance(mario);
+
+        auto peach = ES::load_model_from_obj("../../assets/models/Peach/peach.obj", myShader0);
+        peach.worldTransform = ES::AffineTransform3<float>::from_trs({-.8,1.5,-4},ES::Quaternion<float>::identity(),{.2,.2,.2}).to_matrix4();
+        world.add_instance(peach);
+ 
+
+    }
+
+    { // Thwomps
+        auto thwamp = ES::load_model_from_obj("../../assets/models/Thwomp/thwomp.obj", myShader0);
+
+        thwamp.worldTransform = ES::AffineTransform3<float>::from_trs({6,1.5,-4},ES::Quaternion<float>::identity(),{.16,.16,.16}).to_matrix4();
+        world.add_instance(thwamp);
+        thwamp.worldTransform = ES::AffineTransform3<float>::from_trs({-6,1.5,-4},ES::Quaternion<float>::identity(),{.16,.16,.16}).to_matrix4();
+        world.add_instance(thwamp);
+    }
+
+    { // Yohis
+
+        auto yoshi = ES::load_model_from_obj("../../assets/models/Yoshi/yoshi.obj", myShader0);
+
+
+        yoshi.worldTransform = ES::AffineTransform3<float>::from_trs({4.25,1.5,-4},ES::Quaternion<float>::identity(),{.15,.15,.15}).to_matrix4();
+        world.add_instance(yoshi);
+        yoshi.worldTransform = ES::AffineTransform3<float>::from_trs({-4.25,1.5,-4},ES::Quaternion<float>::identity(),{.15,.15,.15}).to_matrix4();
+        world.add_instance(yoshi);
+    }
+
+    { // Toad
+        auto toad = ES::load_model_from_obj("../../assets/models/Toad/toad.obj", myShader0);
+        toad.worldTransform = ES::AffineTransform3<float>::from_trs({2.5,1.5,-4},ES::Quaternion<float>::identity(),{.15,.15,.15}).to_matrix4();
+        world.add_instance(toad);
+        toad.worldTransform = ES::AffineTransform3<float>::from_trs({-2.5,1.5,-4},ES::Quaternion<float>::identity(),{.15,.15,.15}).to_matrix4();
+        world.add_instance(toad);
+    }
+
+
+
+
+
+
 
     ES::Camera cam;
     cam.setPerspective(60.0f, aspectRatio, 0.1f, 100.0f);
@@ -154,27 +234,6 @@ int main(void){
     ES::PointN<float,3> lightPos(-5.f,5.f,5.f);
     ES::RGB lightColor(2.f,2.f,2.f);
     world.add_light({lightPos, lightColor});
-
-
-        std::string datasource = R"({
-        "shader": [
-            { "_name": "white_chalk",  "_type": "Lambertian", "diffuse": [1, 1, 1] },
-            { "_name": "red_chalk",    "_type": "Lambertian", "diffuse": [1, 0, 0] },
-            { "_name": "yellow_chalk", "_type": "Lambertian", "diffuse": [1, 1, 0] },
-            { "_name": "blue_chalk",   "_type": "Lambertian", "diffuse": [0, 0, 1] }
-        ],
-        "shape": [
-            { "shader": { "_ref": "white_chalk"  }, "center": "-1.5 -1.5 -5", "radius": 1, "_name": "sphere1", "_type": "sphere" },
-            { "shader": { "_ref": "red_chalk"    }, "center": "1.5 -1.5 -5",  "radius": 1, "_name": "sphere2", "_type": "sphere" },
-            { "shader": { "_ref": "yellow_chalk" }, "center": "1.5 1.5 -5",   "radius": 1, "_name": "sphere3", "_type": "sphere" },
-            { "shader": { "_ref": "blue_chalk"   }, "center": "-1.5 1.5 -5",  "radius": 1, "_name": "sphere4", "_type": "sphere" }
-        ]
-    })";
-    
-    std::shared_ptr<OpenGLSceneLoader> sload(new OpenGLSceneLoader(world));
-    SceneParser_JSON sceneParser(sload);
-    sceneParser.parseStringData(datasource);
-
     
     float globeRotationAngle = 0.0f;
     double startFrameTime = glfwGetTime();
