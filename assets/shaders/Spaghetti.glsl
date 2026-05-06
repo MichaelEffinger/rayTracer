@@ -26,7 +26,7 @@ void main(void)
     float dist = length(toBH);
     vec3 dir = normalize(toBH);
     
-    float strength = 5 / (dist + 2);
+    float strength = 2 / (dist + 2);
 
 
     float angle = strength * 20;
